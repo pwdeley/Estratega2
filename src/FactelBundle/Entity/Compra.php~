@@ -1,0 +1,742 @@
+<?php
+
+namespace FactelBundle\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+use Knp\DoctrineBehaviors\Model as ORMBehaviors;
+
+/**
+ * Compra
+ * @ORM\Entity(repositoryClass="FactelBundle\Entity\Repository\CompraRepository")
+ */
+class Compra {
+
+    use ORMBehaviors\Timestampable\Timestampable,
+        ORMBehaviors\Blameable\Blameable
+    ;
+
+    /**
+     * @var integer
+     *
+     * @ORM\Column(name="id", type="integer")
+     * @ORM\Id
+     * @ORM\GeneratedValue(strategy="AUTO")
+     */
+    protected $id;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="claveAcceso", type="string", length=49)
+     */
+    protected $claveAcceso;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="numeroAutorizacion", type="string", length=49, nullable=true)
+     */
+    protected $numeroAutorizacion;
+
+    /**
+     * @var \DateTime
+     *
+     * @ORM\Column(name="fechaAutorizacion", type="datetime", nullable=true)
+     */
+    protected $fechaAutorizacion;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="numeroFactura", type="string", length=40)
+     */
+    protected $numeroFactura;
+
+    /**
+     * @var \DateTime
+     *
+     * @ORM\Column(name="fechaEmision", type="date")
+     */
+    protected $fechaEmision;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="razonSocialProveedor", type="string", length=255)
+     */
+    protected $razonSocialProveedor;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="nombreComercialProveedor", type="string", length=255, nullable=true)
+     */
+    protected $nombreComercialProveedor;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="identificacionProveedor", type="string", length=25, unique = FALSE)
+     */
+    private $identificacionProveedor;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="direccionMatrizProveedor", type="text")
+     */
+    private $direccionMatrizProveedor;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="direccionEstabProveedor", type="text", nullable=true)
+     */
+    private $direccionEstabProveedor;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="Emisor", inversedBy="compras")
+     * @ORM\JoinColumn(name="emisor_id", referencedColumnName="id", nullable=false)
+     */
+    protected $emisor;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="Establecimiento", inversedBy="compras")
+     * @ORM\JoinColumn(name="establecimiento_id", referencedColumnName="id", nullable=false)
+     */
+    protected $establecimiento;
+
+    /**
+     * @ORM\OneToMany(targetEntity="DetalleCompra", mappedBy="compra", cascade={"persist"})
+     */
+    protected $detallesCompra;
+
+    /**
+     * @var decimal
+     *
+     * @ORM\Column(name="totalSinImpuestos", type="decimal", scale=2)
+     */
+    protected $totalSinImpuestos;
+
+    /**
+     * @var float
+     *
+     * @ORM\Column(name="totalDescuento", type="decimal", scale=2)
+     */
+    protected $totalDescuento = 0.00;
+
+    /**
+     * @var float
+     *
+     * @ORM\Column(name="valorICE", type="decimal", scale=2)
+     */
+    protected $valorICE = 0.00;
+
+    /**
+     * @var float
+     *
+     * @ORM\Column(name="subTotalIva0", type="decimal", scale=2)
+     */
+    protected $subTotalIva0 = 0.00;
+    
+    /**
+     * @var float
+     *
+     * @ORM\Column(name="subTotalIva12", type="decimal", scale=2)
+     */
+    protected $subTotalIva12 = 0.00;
+
+    /**
+     * @var float
+     *
+     * @ORM\Column(name="iva12", type="decimal", scale=2)
+     */
+    protected $iva12 = 0.00;
+
+    /**
+     * @var float
+     *
+     * @ORM\Column(name="propina", type="decimal", scale=2)
+     */
+    protected $propina = 0.00;
+
+    /**
+     * @var float
+     *
+     * @ORM\Column(name="valorTotal", type="decimal", scale=2)
+     */
+    protected $valorTotal;
+
+   
+    /**
+     * @var float
+     *
+     * @ORM\Column(name="retencionCreadaId", type="integer", nullable=true)
+     */
+    protected $retencionCreadaId;
+    
+     /**
+     * @var boolean
+     *
+     * @ORM\Column(name="facturaFisica", type="boolean", nullable=TRUE)
+     */
+    protected $facturaFisica = false;
+    
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        $this->detallesCompra = new \Doctrine\Common\Collections\ArrayCollection();
+    }
+
+    /**
+     * Get id
+     *
+     * @return integer
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * Set claveAcceso
+     *
+     * @param string $claveAcceso
+     *
+     * @return Compra
+     */
+    public function setClaveAcceso($claveAcceso)
+    {
+        $this->claveAcceso = $claveAcceso;
+
+        return $this;
+    }
+
+    /**
+     * Get claveAcceso
+     *
+     * @return string
+     */
+    public function getClaveAcceso()
+    {
+        return $this->claveAcceso;
+    }
+
+    /**
+     * Set numeroAutorizacion
+     *
+     * @param string $numeroAutorizacion
+     *
+     * @return Compra
+     */
+    public function setNumeroAutorizacion($numeroAutorizacion)
+    {
+        $this->numeroAutorizacion = $numeroAutorizacion;
+
+        return $this;
+    }
+
+    /**
+     * Get numeroAutorizacion
+     *
+     * @return string
+     */
+    public function getNumeroAutorizacion()
+    {
+        return $this->numeroAutorizacion;
+    }
+
+    /**
+     * Set fechaAutorizacion
+     *
+     * @param \DateTime $fechaAutorizacion
+     *
+     * @return Compra
+     */
+    public function setFechaAutorizacion($fechaAutorizacion)
+    {
+        $this->fechaAutorizacion = $fechaAutorizacion;
+
+        return $this;
+    }
+
+    /**
+     * Get fechaAutorizacion
+     *
+     * @return \DateTime
+     */
+    public function getFechaAutorizacion()
+    {
+        return $this->fechaAutorizacion;
+    }
+
+    /**
+     * Set numeroFactura
+     *
+     * @param string $numeroFactura
+     *
+     * @return Compra
+     */
+    public function setNumeroFactura($numeroFactura)
+    {
+        $this->numeroFactura = $numeroFactura;
+
+        return $this;
+    }
+
+    /**
+     * Get numeroFactura
+     *
+     * @return string
+     */
+    public function getNumeroFactura()
+    {
+        return $this->numeroFactura;
+    }
+
+    /**
+     * Set fechaEmision
+     *
+     * @param \DateTime $fechaEmision
+     *
+     * @return Compra
+     */
+    public function setFechaEmision($fechaEmision)
+    {
+        $this->fechaEmision = $fechaEmision;
+
+        return $this;
+    }
+
+    /**
+     * Get fechaEmision
+     *
+     * @return \DateTime
+     */
+    public function getFechaEmision()
+    {
+        return $this->fechaEmision;
+    }
+
+    /**
+     * Set razonSocialProveedor
+     *
+     * @param string $razonSocialProveedor
+     *
+     * @return Compra
+     */
+    public function setRazonSocialProveedor($razonSocialProveedor)
+    {
+        $this->razonSocialProveedor = $razonSocialProveedor;
+
+        return $this;
+    }
+
+    /**
+     * Get razonSocialProveedor
+     *
+     * @return string
+     */
+    public function getRazonSocialProveedor()
+    {
+        return $this->razonSocialProveedor;
+    }
+
+    /**
+     * Set nombreComercialProveedor
+     *
+     * @param string $nombreComercialProveedor
+     *
+     * @return Compra
+     */
+    public function setNombreComercialProveedor($nombreComercialProveedor)
+    {
+        $this->nombreComercialProveedor = $nombreComercialProveedor;
+
+        return $this;
+    }
+
+    /**
+     * Get nombreComercialProveedor
+     *
+     * @return string
+     */
+    public function getNombreComercialProveedor()
+    {
+        return $this->nombreComercialProveedor;
+    }
+
+    /**
+     * Set identificacionProveedor
+     *
+     * @param string $identificacionProveedor
+     *
+     * @return Compra
+     */
+    public function setIdentificacionProveedor($identificacionProveedor)
+    {
+        $this->identificacionProveedor = $identificacionProveedor;
+
+        return $this;
+    }
+
+    /**
+     * Get identificacionProveedor
+     *
+     * @return string
+     */
+    public function getIdentificacionProveedor()
+    {
+        return $this->identificacionProveedor;
+    }
+
+    /**
+     * Set direccionMatrizProveedor
+     *
+     * @param string $direccionMatrizProveedor
+     *
+     * @return Compra
+     */
+    public function setDireccionMatrizProveedor($direccionMatrizProveedor)
+    {
+        $this->direccionMatrizProveedor = $direccionMatrizProveedor;
+
+        return $this;
+    }
+
+    /**
+     * Get direccionMatrizProveedor
+     *
+     * @return string
+     */
+    public function getDireccionMatrizProveedor()
+    {
+        return $this->direccionMatrizProveedor;
+    }
+
+    /**
+     * Set direccionEstabProveedor
+     *
+     * @param string $direccionEstabProveedor
+     *
+     * @return Compra
+     */
+    public function setDireccionEstabProveedor($direccionEstabProveedor)
+    {
+        $this->direccionEstabProveedor = $direccionEstabProveedor;
+
+        return $this;
+    }
+
+    /**
+     * Get direccionEstabProveedor
+     *
+     * @return string
+     */
+    public function getDireccionEstabProveedor()
+    {
+        return $this->direccionEstabProveedor;
+    }
+
+    /**
+     * Set totalSinImpuestos
+     *
+     * @param string $totalSinImpuestos
+     *
+     * @return Compra
+     */
+    public function setTotalSinImpuestos($totalSinImpuestos)
+    {
+        $this->totalSinImpuestos = $totalSinImpuestos;
+
+        return $this;
+    }
+
+    /**
+     * Get totalSinImpuestos
+     *
+     * @return string
+     */
+    public function getTotalSinImpuestos()
+    {
+        return $this->totalSinImpuestos;
+    }
+
+    /**
+     * Set totalDescuento
+     *
+     * @param string $totalDescuento
+     *
+     * @return Compra
+     */
+    public function setTotalDescuento($totalDescuento)
+    {
+        $this->totalDescuento = $totalDescuento;
+
+        return $this;
+    }
+
+    /**
+     * Get totalDescuento
+     *
+     * @return string
+     */
+    public function getTotalDescuento()
+    {
+        return $this->totalDescuento;
+    }
+
+    /**
+     * Set valorICE
+     *
+     * @param string $valorICE
+     *
+     * @return Compra
+     */
+    public function setValorICE($valorICE)
+    {
+        $this->valorICE = $valorICE;
+
+        return $this;
+    }
+
+    /**
+     * Get valorICE
+     *
+     * @return string
+     */
+    public function getValorICE()
+    {
+        return $this->valorICE;
+    }
+
+    /**
+     * Set subTotalIva0
+     *
+     * @param string $subTotalIva0
+     *
+     * @return Compra
+     */
+    public function setSubTotalIva0($subTotalIva0)
+    {
+        $this->subTotalIva0 = $subTotalIva0;
+
+        return $this;
+    }
+
+    /**
+     * Get subTotalIva0
+     *
+     * @return string
+     */
+    public function getSubTotalIva0()
+    {
+        return $this->subTotalIva0;
+    }
+
+    /**
+     * Set subTotalIva12
+     *
+     * @param string $subTotalIva12
+     *
+     * @return Compra
+     */
+    public function setSubTotalIva12($subTotalIva12)
+    {
+        $this->subTotalIva12 = $subTotalIva12;
+
+        return $this;
+    }
+
+    /**
+     * Get subTotalIva12
+     *
+     * @return string
+     */
+    public function getSubTotalIva12()
+    {
+        return $this->subTotalIva12;
+    }
+
+    /**
+     * Set iva12
+     *
+     * @param string $iva12
+     *
+     * @return Compra
+     */
+    public function setIva12($iva12)
+    {
+        $this->iva12 = $iva12;
+
+        return $this;
+    }
+
+    /**
+     * Get iva12
+     *
+     * @return string
+     */
+    public function getIva12()
+    {
+        return $this->iva12;
+    }
+
+    /**
+     * Set propina
+     *
+     * @param string $propina
+     *
+     * @return Compra
+     */
+    public function setPropina($propina)
+    {
+        $this->propina = $propina;
+
+        return $this;
+    }
+
+    /**
+     * Get propina
+     *
+     * @return string
+     */
+    public function getPropina()
+    {
+        return $this->propina;
+    }
+
+    /**
+     * Set valorTotal
+     *
+     * @param string $valorTotal
+     *
+     * @return Compra
+     */
+    public function setValorTotal($valorTotal)
+    {
+        $this->valorTotal = $valorTotal;
+
+        return $this;
+    }
+
+    /**
+     * Get valorTotal
+     *
+     * @return string
+     */
+    public function getValorTotal()
+    {
+        return $this->valorTotal;
+    }
+
+    /**
+     * Set emisor
+     *
+     * @param \FactelBundle\Entity\Emisor $emisor
+     *
+     * @return Compra
+     */
+    public function setEmisor(\FactelBundle\Entity\Emisor $emisor)
+    {
+        $this->emisor = $emisor;
+
+        return $this;
+    }
+
+    /**
+     * Get emisor
+     *
+     * @return \FactelBundle\Entity\Emisor
+     */
+    public function getEmisor()
+    {
+        return $this->emisor;
+    }
+
+    /**
+     * Set establecimiento
+     *
+     * @param \FactelBundle\Entity\Establecimiento $establecimiento
+     *
+     * @return Compra
+     */
+    public function setEstablecimiento(\FactelBundle\Entity\Establecimiento $establecimiento)
+    {
+        $this->establecimiento = $establecimiento;
+
+        return $this;
+    }
+
+    /**
+     * Get establecimiento
+     *
+     * @return \FactelBundle\Entity\Establecimiento
+     */
+    public function getEstablecimiento()
+    {
+        return $this->establecimiento;
+    }
+
+    /**
+     * Add detallesCompra
+     *
+     * @param \FactelBundle\Entity\DetalleCompra $detallesCompra
+     *
+     * @return Compra
+     */
+    public function addDetallesCompra(\FactelBundle\Entity\DetalleCompra $detallesCompra)
+    {
+        $this->detallesCompra[] = $detallesCompra;
+
+        return $this;
+    }
+
+    /**
+     * Remove detallesCompra
+     *
+     * @param \FactelBundle\Entity\DetalleCompra $detallesCompra
+     */
+    public function removeDetallesCompra(\FactelBundle\Entity\DetalleCompra $detallesCompra)
+    {
+        $this->detallesCompra->removeElement($detallesCompra);
+    }
+
+    /**
+     * Get detallesCompra
+     *
+     * @return \Doctrine\Common\Collections\Collection
+     */
+    public function getDetallesCompra()
+    {
+        return $this->detallesCompra;
+    }
+
+    /**
+     * Set retencionCreadaId
+     *
+     * @param $retencionCreadaId
+     *
+     * @return Compra
+     */
+    public function setRetencionCreadaId($retencionCreadaId = null)
+    {
+        $this->retencionCreadaId = $retencionCreadaId;
+
+        return $this;
+    }
+
+    /**
+     * Get retencionCreadaId
+     *
+     * @return \int
+     */
+    public function getRetencionCreadaId()
+    {
+        return $this->retencionCreadaId;
+    }
+
+
+}

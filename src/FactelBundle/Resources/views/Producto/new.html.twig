@@ -1,0 +1,62 @@
+{% extends "FactelBundle::Layout.html.twig" %}
+{% block panel_title %}
+    <i class="fa fa-bar-chart-o fa-fw"></i> Nuevo Producto
+    <div class="pull-right">
+        <div class="btn-group">
+            <button class="btn btn-info btn-xs dropdown-toggle"
+                    type="button" data-toggle="dropdown">
+                <i class="fa fa-list"></i>
+                Acciones <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                <li><a href="" onclick="document.getElementById('submit').click();
+                        return false;"><i class="fa fa-floppy-o"></i> Guardar</a></li>
+                <li><a href="{{ path('producto') }}"><i class="fa fa-undo"></i> Cancelar</a></li>
+            </ul>
+        </div>
+
+    </div>
+{% endblock %}
+{% block content %}
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+    <div class="form-group">
+        <div class="checkbox col-sm-10 col-sm-offset-2" style="margin-bottom: 10px">
+            <label>
+                <input type="checkbox" value=false id="tieneSubsidio" name = "tieneSubsidio" checked="0">
+                <strong>Tiene Subsidio?</strong>
+            </label>
+        </div>
+        <div id="subsidio">
+            <div  class="col-sm-2" style="text-align: right">
+                <label class="control-label">Precio Sin Subsidio </label>
+            </div >
+            <div class="col-sm-3">
+                <input type="text"  id="precioSinSubsidio" class="form-control" name="precioSinSubsidio" >
+            </div>
+        </div>
+    </div>
+    <button id="submit" class="hidden" type="submit">
+    </button>
+
+    {{ form_end(form) }}
+{% endblock %}
+{% block javascript %}
+    <script>
+        $('#tieneSubsidio').prop('checked', false);
+        $('#tieneSubsidio').val(false);
+        $("#subsidio").hide();
+        $('#tieneSubsidio').click(function () {
+            console.log($('#tieneSubsidio').val())
+            if ($('#tieneSubsidio').val() === 'false') {
+                $('#tieneSubsidio').prop('checked', true);
+                $('#tieneSubsidio').val(true);
+                $("#subsidio").show();
+            } else {
+                $('#tieneSubsidio').prop('checked', false);
+                $('#tieneSubsidio').val(false);
+                $("#subsidio").hide();
+            }
+        })
+    </script>
+{% endblock %}

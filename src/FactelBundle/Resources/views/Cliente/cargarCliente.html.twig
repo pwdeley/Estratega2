@@ -1,0 +1,16 @@
+{% extends "FactelBundle::Layout.html.twig" %}
+
+{% block panel_title %}
+<i class="fa fa-bar-chart-o fa-fw"></i> Carga Masiva Cliente
+<div class="pull-right">
+    
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="col-md-12">
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+    {{ form_end(form) }}
+</div>
+{% endblock %}

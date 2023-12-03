@@ -1,0 +1,70 @@
+{% extends "FactelBundle::Layout.html.twig" %}
+{% block panel_title %}
+    <i class="fa fa-bar-chart-o fa-fw"></i>{{entity.nombre}}
+    <div class="pull-right">
+        <div class="btn-group">
+            <button class="btn btn-info btn-xs dropdown-toggle"
+                    type="button" data-toggle="dropdown">
+                <i class="fa fa-list"></i>
+                Acciones <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                <li><a href="{{ path('producto_new') }}"><i class="fa fa-plus-circle"></i> Nuevo</a></li>
+                <li><a href="{{ path('producto_edit', { 'id': entity.id }) }}"><i class="fa fa-pencil-square-o"></i> Editar</a></li>
+                <li><a href="{{ path('producto') }}"><i class="fa fa-undo"></i> Productos</a></li>
+                <li class="divider"></li>
+                <li><a class="accion" href="" data-toggle="modal" data-target="#confirm-delete" type="button" accion = "delete"><i class="glyphicon glyphicon-trash icon-white"></i> Eliminar</a></li>
+            </ul>
+        </div>
+
+    </div>
+{% endblock %}
+{% block content %}
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Nombre</th>
+                <td>{{ entity.nombre }}</td>
+            </tr>
+            <tr>
+                <th>C&oacute;digo Principal</th>
+                <td>{{ entity.codigoPrincipal }}</td>
+            </tr>
+            <tr>
+                <th>C&oacute;digo Auxiliar</th>
+                <td>{{ entity.codigoAuxiliar }}</td>
+            </tr>
+
+            <tr>
+                <th>Precio Unitario</th>
+                <td>{{ entity.precioUnitario }}</td>
+            </tr>
+            <tr>
+                <th>Impuesto IVA</th>
+                <td>{{ entity.impuestoIVA.nombre }}</td>
+            </tr>
+            <tr>
+                <th>Impuesto ICE</th>
+                    {% set ice = entity.impuestoICE %}
+                <td>{%if ice != null %} {{ entity.impuestoICE.nombre }}{% endif %}</td>
+            </tr>
+            <tr>
+                <th>Impuesto IRBPNR</th>
+                    {% set IRBPNR = entity.impuestoIRBPNR %}
+                <td>{%if IRBPNR != null %} {{ entity.impuestoIRBPNR.nombre }}{% endif %}</td>
+            </tr>
+            {%if entity.tieneSubsidio %}
+                <tr>
+                    <th>Precio Sin Subsidio</th>
+                    <td>{{ entity.precioSinSubsidio }}</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    {{ form(delete_form) }}
+
+    <button id="submit" class="hidden" >
+    </button>
+
+{% endblock %}

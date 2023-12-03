@@ -1,0 +1,439 @@
+
+{% extends "FactelBundle::Layout.html.twig" %}
+{% set secuencial = pto[0].secuencialGuiaRemision %}
+{% set cant = 9 - secuencial|length %}
+{% for i in 0..cant - 1 %}
+    {% set secuencial = 0 ~ secuencial %} 
+{% endfor %}
+{% block panel_title %}
+
+<i class="fa fa-bar-chart-o fa-fw"></i>Nueva Guia <strong>Nro: {{pto[0].establecimiento.codigo}}-{{pto[0].codigo}}-{{secuencial}}</strong>
+<div class="pull-right">
+    <div class="btn-group">
+        <button class="btn btn-info btn-xs dropdown-toggle"
+                type="button" data-toggle="dropdown">
+            <i class="fa fa-list"></i>
+            Acciones <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu">
+            <li><a href="" onclick="document.getElementById('submit').click();
+                    return false;"><i class="fa fa-floppy-o"></i> Guardar</a></li>
+            <li><a href="{{ path('guia') }}"><i class="fa fa-undo"></i> Cancelar</a></li>
+        </ul>
+    </div>
+
+</div>
+{% endblock %}
+{% block content %}
+<div class="modal fade" id="search-client" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Seleccione el Cliente</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="dataTable_wrapper table-responsive">  
+                    <table class="table table-bordered table-hover " id="client-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%" >ID</th>
+                                <th style="width: 10%" >Tipo Identificacion</th>
+                                <th style="width: 30%" >Identificaci&oacute;n</th>
+                                <th>Raz&oacute;n Social</th>
+                                <th>Celular</th>
+                                <th>Email</th>
+                                <th>Direccion</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="search-product" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Seleccione un Producto</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="dataTable_wrapper table-responsive">  
+                    <table class="table table-bordered table-hover " id="product-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%" >ID</th>
+                                <th >C&oacute;digo Principal</th>
+                                <th >C&oacute;digo Auxiliar</th>
+                                <th>Descricci&oacute;n</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<form method="POST" action="{{path('guia_create')}}" id="formGuia">
+    <div class="container-fluid guia">
+            {% for flashMessage in app.session.flashbag.get('notice') %}
+        <div class="col-sm-12 alert alert-danger alert-dismissable">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <h4><strong>Ha ocurrido un error al crear la guia!</strong></h4>
+            <p>{{ flashMessage }}</p>
+        </div>
+            {% endfor %}
+        <fieldset class="border col-sm-12">
+            <legend class="border">Emisor</legend>
+            <div class="control-group" id="emisor">
+                <div class="col-sm-12"><p class="text-center"><strong>Ruc:</strong> {{pto[0].establecimiento.emisor.ruc}}</p></div>
+                <div class="col-sm-12 col-md-6"><strong>Raz&oacute;n Social:</strong> {{pto[0].establecimiento.emisor.razonSocial}}</div>
+                <div class="col-sm-12 col-md-6"><strong>Nombre Comercial:</strong> {%if pto[0].establecimiento.nombreComercial%}{{pto[0].establecimiento.nombreComercial}}{%else%}{{pto[0].establecimiento.emisor.nombreComercial}}{%endif%}</div>
+                <div class="col-sm-12 col-md-6"><strong>Contribuyente Especial:</strong> {{pto[0].establecimiento.emisor.contribuyenteEspecial}}</div>
+                <div class="col-sm-12 col-md-6"><strong>Obligado Contabilidad:</strong> {{pto[0].establecimiento.emisor.obligadoContabilidad}}</div>
+                <div class="col-sm-12 col-md-6"><strong>Direcci&oacute;n Matriz:</strong> {{pto[0].establecimiento.emisor.direccionMatriz}}</div>
+                <div class="col-sm-12 col-md-6"><strong>Direcci&oacute;n Establecimiento:</strong> {{pto[0].establecimiento.direccion}}</div>
+            </div>
+        </fieldset>
+
+        <fieldset class="border  col-sm-12 ">
+            <legend class="border">Comprobante</legend>
+            <div class="form-group" id="comprobante">
+                <div class="col-sm-6 col-lg-3"><strong>Ambiente:</strong> {% if pto[0].establecimiento.emisor.ambiente == 1%} Pruebas {% else %} Producci&oacute;n {% endif %}</div>
+                <div class="col-lg-4"><strong>Tipo Emisi&oacute;n:</strong> {% if pto[0].establecimiento.emisor.tipoEmision == 1%} Emisi&oacute;n Normal {% else %} Emisi&oacute;n por Indisponibilidad del Sistema {% endif %}</div>
+                <div class="col-sm-12 col-md-5">
+                    <label class="control-label">
+                        Fecha Inicio Transporte: *
+                    </label> 
+                    <input class="form-control" type="text" id="fecha" size="8" name="fechaIniTransporte" required="required" onchange="CrearClaveAcceso()"/> 
+                </div>
+                <div class="col-sm-12 col-md-5">
+                    <label class="control-label">
+                        Fecha Fin Transporte: *
+                    </label> 
+                    <input class="form-control" type="text" id="fechaFinT" size="8" name="fechaFinTransporte" required="required"/> 
+                </div>
+                <div class="col-sm-12 col-md-12">
+                    <label class="control-label">
+                        Direccion Partida: *
+                    </label> 
+                    <input class="form-control" type="text" id="dirPartida" name="dirPartida" required="required"/> 
+                </div>
+                <div class="col-sm-12 col-md-12">
+                    <label class="control-label">
+                        Transportista: *
+                    </label> 
+                    <input class="form-control" type="text" id="razonSocialTransportista" name="razonSocialTransportista" required="required"/> 
+                </div>
+                <div class="col-sm-12 col-md-6">
+                    <label class="control-label">
+                        RUC Transportista: *
+                    </label> 
+                    <input class="form-control" type="text" class="form-control" id="rucTransportista" size="8" name="rucTransportista" required="required" maxlength="13"/> 
+                </div>
+                <div class="col-sm-12 col-md-6">
+                    <label class="control-label">
+                        Placa: *
+                    </label> 
+                    <input class="form-control" type="text" class="form-control" id="placa" size="8" name="placa" required="required"/> 
+                </div>
+                <div class="col-sm-12 col-md-12">
+                    <label class="control-label">
+                        Motivo Traslado: *
+                    </label> 
+                    <input class="form-control" type="text" id="motivoTraslado" name="motivoTraslado" required="required"/> 
+                </div>
+                <div class="col-sm-12"><p class="text-center"><strong>Clave Acceso</strong></p></div>
+                <div class="col-sm-12 claveAcceso"><p class="text-center" id="claveAcceso"></p></div>
+
+            </div>
+        </fieldset>
+
+            {% set datos = pto[0].establecimiento.emisor.ruc ~ ',' ~ pto[0].establecimiento.emisor.ambiente ~ ',' ~ pto[0].establecimiento.emisor.tipoEmision ~ ',' ~ pto[0].establecimiento.codigo~ ','~ pto[0].codigo ~',' ~ secuencial ~',' ~ "06"%}
+        <input id="datos" type="hidden" value="{{datos}}" />
+        <input type="hidden" name="secuencial" value="{{secuencial}}" />
+        <fieldset class="border col-sm-12">
+            <legend class="border">Destinatario</legend>
+            <div class="form-group">
+                <div class="checkbox col-sm-6">
+                    <label>
+                        <input type="checkbox" value=false id="nuevoCliente" name = "nuevoCliente">
+                        <strong>Nuevo Cliente</strong>
+                    </label>
+                </div>
+
+                <div class="col-sm-6 text-right">
+                    <button class="btn btn-info link-boton accion" data-toggle="modal" data-target="#search-client" type="button">
+                        <i class="glyphicon glyphicon-search icon-white">Buscar</i>
+                    </button>
+                </div>
+                <div class="checkbox col-sm-12"></div>
+                <input type="text" id="idCliente" class="form-control hidden" name="idCliente">
+                <div class="col-md-5">
+                    <label class="control-label">Nombre *</label>
+                    <input type="text" id="nombre" class="form-control" name="nombre" required="required">
+                </div>
+                <div class="col-md-3">
+                    <label class="control-label">Celular</label>
+                    <input type="text" id="celular" class="form-control" name="celular" >
+                </div>
+                <div class="col-md-4">
+                    <label class="control-label">Email </label>
+                    <input type="email" id="email" class="form-control" name="email" >
+                </div>
+                <div class="col-md-3">
+                    <label class="control-label">Tipo Identificaci&oacute;n *</label>
+                    <select class="form-control" id="tipoIdentificacion" name="tipoIdentificacion" required="required">
+                        <option value="04">RUC</option>
+                        <option value="05">CEDULA</option>
+                        <option value="06">PASAPORTE</option>
+                        <option value="07">CONSUMIDOR FINAL</option>
+                        <option value="08">EXTERIOR</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="control-label">Identificaci&oacute;n *</label>
+                    <input type="text" id="identificacion"  class="form-control" name="identificacion" required="required" > 
+                </div>
+                <div class="col-md-6">
+                    <label class="control-label">Direcci&oacute;n</label>
+                    <input type="text" id="direccion" class="form-control" name="direccion" required="required">
+                </div>
+            </div>
+        </fieldset>
+
+        <legend class="border">Productos</legend>
+        <div id="mensajeAdvertencia">
+
+        </div>
+        <div class="col-sm-12 text-right">
+
+            <button class="btn btn-info link-boton accion" data-toggle="modal" data-target="#search-product" type="button">
+                <i class="glyphicon glyphicon-search icon-white">Buscar</i>
+            </button>
+        </div>
+        <div class="dataTable_wrapper table-responsive col-lg-12">  
+            <table class="table table-striped table-bordered table-hover" id="productos">
+                <thead>
+                <thead>
+                    <tr>
+                        <th >Cantidad *</th>
+                        <th>C&oacute;digo</th>
+                        <th>Descripci&oacute;n</th>
+                        <th>Accion</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>  
+    </div>
+    <button class="hidden" id ="submit" type="submit"></button>
+</form>
+
+
+{% endblock %}
+
+{% block javascript %}
+<script src="{{asset('recursos/bower_components/datatables/media/js/jquery.dataTables.js')}}"></script>
+<script src="{{asset('recursos/bower_components/datatables-plugins/integration/bootstrap/3/dataTables.bootstrap.min.js')}}"></script>
+<script src="{{asset('recursos/js/script.js')}}"></script>
+
+<script>
+
+                        var oTable = $("#client-table").dataTable({
+                            responsive: true,
+                            bAutoWidth: false,
+                            sAjaxSource: "{{ path('all_client')}}",
+                            bProcessing: true,
+                            bServerSide: true,
+                            bSort: false,
+                            asStripeClasses: [],
+                            aLengthMenu: [[5, 10, 15], [5, 10, 15]],
+                            aoColumns: [{"bVisible": false}, {"bVisible": false}, null, null, {"bVisible": false}, {"bVisible": false}, {"bVisible": false}],
+                            language: {
+                                sProcessing: "Procesando...",
+                                sLengthMenu: "Mostrar _MENU_",
+                                sZeroRecords: "No se encontraron resultados",
+                                sEmptyTable: "Ningún dato disponible en esta tabla",
+                                sInfo: "Mostrando del _START_ al _END_ de _TOTAL_ registros",
+                                sInfoEmpty: "Mostrando del 0 al 0 de un total de 0 registros",
+                                sInfoFiltered: "(filtrado de un total de _MAX_ registros)",
+                                sInfoPostFix: "",
+                                sSearch: "Buscar:",
+                                sUrl: "",
+                                sInfoThousands: ",",
+                                sLoadingRecords: "Cargando...",
+                                oPaginate: {
+                                    sFirst: "Primero",
+                                    sLast: "Último",
+                                    sNext: "Siguiente",
+                                    sPrevious: "Anterior"
+                                },
+                                oAria: {
+                                    sSortAscending: ": Activar para ordenar la columna de manera ascendente",
+                                    sSortDescending: ": Activar para ordenar la columna de manera descendente"
+                                },
+                            },
+                        });
+                        $('#client-table_filter input').unbind();
+                        $('#client-table_filter input').bind('keyup', function(e) {
+                            if (e.keyCode == 13) {
+                                oTable.fnFilter($(this).val());
+                            }
+                        });
+                        $('#client-table tbody').on('click', 'tr', function() {
+                            var aData = oTable.fnGetData(this); // get datarow
+                            if (null != aData)  // null if we clicked on title row
+                            {
+                                $("#idCliente").val(aData[0]);
+                                $("#tipoIdentificacion").val(aData[1]);
+                                $("#identificacion").val(aData[2]);
+                                $("#nombre").val(aData[3]);
+                                $("#celular").val(aData[4]);
+                                $("#email").val(aData[5]);
+                                $("#direccion").val(aData[6]);
+                                $('#search-client').modal('toggle');
+                                $('#nuevoCliente').prop('checked', false);
+                                $('#nuevoCliente').val(false);
+                            }
+                        });
+                        $('#nuevoCliente').click(function() {
+                            $("#idCliente").val("");
+                            $("#tipoIdentificacion").val("");
+                            $("#identificacion").val("");
+                            $("#nombre").val("");
+                            $("#celular").val("");
+                            $("#email").val("");
+                            $("#direccion").val("");
+                            $('#nuevoCliente').prop('checked', true);
+                            $('#nuevoCliente').val(true);
+                        });
+                        var oTable2 = $("#product-table").dataTable({
+                            responsive: true,
+                            bAutoWidth: false,
+                            sAjaxSource: "{{ path('all_product')}}",
+                            bProcessing: true,
+                            bServerSide: true,
+                            bSort: false,
+                            asStripeClasses: [],
+                            aLengthMenu: [[5, 10, 15], [5, 10, 15]],
+                            aoColumns: [{"bVisible": false}, null, null, null, {"bVisible": false}, {"bVisible": false}, {"bVisible": false}, {"bVisible": false}, {"bVisible": false}],
+                            language: {
+                                sProcessing: "Procesando...",
+                                sLengthMenu: "Mostrar _MENU_",
+                                sZeroRecords: "No se encontraron resultados",
+                                sEmptyTable: "Ningún dato disponible en esta tabla",
+                                sInfo: "Mostrando del _START_ al _END_ de _TOTAL_ registros",
+                                sInfoEmpty: "Mostrando del 0 al 0 de un total de 0 registros",
+                                sInfoFiltered: "(filtrado de un total de _MAX_ registros)",
+                                sInfoPostFix: "",
+                                sSearch: "Buscar:",
+                                sUrl: "",
+                                sInfoThousands: ",",
+                                sLoadingRecords: "Cargando...",
+                                oPaginate: {
+                                    sFirst: "Primero",
+                                    sLast: "Último",
+                                    sNext: "Siguiente",
+                                    sPrevious: "Anterior"
+                                },
+                                oAria: {
+                                    sSortAscending: ": Activar para ordenar la columna de manera ascendente",
+                                    sSortDescending: ": Activar para ordenar la columna de manera descendente"
+                                },
+                            },
+                        });
+                        $('#product-table_filter input').unbind();
+                        $('#product-table_filter input').bind('keyup', function(e) {
+                            if (e.keyCode == 13) {
+                                oTable2.fnFilter($(this).val());
+                            }
+                        });
+                        $('#product-table tbody').on('click', 'tr', function(e) {
+                            e.preventDefault();
+                            var aData = oTable2.fnGetData(this); // get datarow
+                            if (null !== aData && $("#idProducto" + aData[0]).val() != aData[0])  // null if we clicked on title row
+                            {
+                                $('#productos > tbody:last').append('<tr class = "filaProducto">'
+                                        + '<td><input type = "text" class= "hidden datos" value = "' + aData + '">' +
+                                        '<input type = "text" value = "1" size= "4" name = "cantidad[' + aData[0] + ']" id="producto' + aData[0] + '"></td>'
+                                        + '<td>' + aData[1] + '<input type = "text" class= "hidden" value = "' + aData[1] + '" id="codigoProducto' + aData[0] + '" name = "codigoProducto[' + aData[0] + ']"><input type = "text" class= "hidden" value = "' + aData[3] + '" id="nombreProducto' + aData[0] + '" name = "nombreProducto[' + aData[0] + ']"></td>'
+                                        + '<td><input type = "text" class= "hidden" value = "' + aData[0] + '" id="idProducto' + aData[0] + '" name = "idProducto[' + aData[0] + ']">' + aData[3] + '</td>'
+                                        + "<td> <button class='btn btn-danger link-boton accion'  type='button' onclick = 'eliminarFila(this)'>"
+                                        + "<i class='glyphicon glyphicon-trash icon-white'></i></button></td></tr>"
+                                        + '</tr>');
+                                $('#productos input').keypress(function(e) {
+                                    if (e.which == 13) {
+                                        $(this).blur();
+                                    }
+                                });
+
+                                $('#search-product').modal('toggle');
+                                $("#producto" + aData[0]).rules("add", {
+                                    required: true,
+                                    number: true,
+                                });
+
+                            } else if (null !== aData) {
+                                $("#mensajeAdvertencia").children().first().remove();
+                                var msg = "<div class='col-sm-12 alert alert-warning alert-dismissable' id='alert-warning'>" +
+                                        "<button type='button' class='close' data-dismiss='alert'>&times;</button>" +
+                                        "<p>El producto <strong>" + aData[3] + "</strong> ya se encuentra en la guia. Aumente la cantidad si lo necesita.</p></div>";
+                                $("#mensajeAdvertencia").append(msg);
+                                $('#search-product').modal('toggle');
+                                $("#alert-warning").fadeOut(6000);
+                            }
+                        });
+                        $("form").keypress(function(e) {
+                            if (e.which == 13) {
+                                return false;
+                            }
+                        });
+                        $("#formGuia").validate({
+                            errorClass: "my-error-class",
+                            validClass: "my-valid-class",
+                            rules: {
+                                nombre: {
+                                    required: true,
+                                },
+                                email: {
+                                    email: true,
+                                },
+                                tipoIdentificacion: {
+                                    required: true,
+                                },
+                                identificacion: {
+                                    required: true,
+                                },
+                            }
+
+                        });
+                        $("#id").val("");
+                        $("#tipoIdentificacion").val("");
+                        $("#identificacion").val("");
+                        $("#nombre").val("");
+                        $("#celular").val("");
+                        $("#email").val("");
+                        $("#direccion").val("");
+                        $('#nuevoCliente').prop('checked', true);
+                        $('#nuevoCliente').val(true);
+
+                        function eliminarFila(e) {
+                            $(e).parent().parent().remove();
+                        }
+
+</script>
+{% endblock %}

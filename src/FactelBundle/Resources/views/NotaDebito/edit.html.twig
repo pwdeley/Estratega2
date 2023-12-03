@@ -1,0 +1,438 @@
+{% extends "FactelBundle::Layout.html.twig" %}
+ {% set secuencial = entity.secuencial%}
+{% block panel_title %}
+
+<i class="fa fa-bar-chart-o fa-fw"></i>Nota D&eacute;bito <strong>Nro: {{entity.establecimiento.codigo}}-{{entity.ptoEmision.codigo}}-{{secuencial}}</strong>
+<div class="pull-right">
+    <div class="btn-group">
+        <button class="btn btn-info btn-xs dropdown-toggle"
+                type="button" data-toggle="dropdown">
+            <i class="fa fa-list"></i>
+            Acciones <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu">
+            <li><a href="" onclick="document.getElementById('submit').click();
+                    return false;"><i class="fa fa-floppy-o"></i> Guardar</a></li>
+            <li><a href="{{ path('notadebito') }}"><i class="fa fa-undo"></i> Cancelar</a></li>
+        </ul>
+    </div>
+
+</div>
+{% endblock %}
+{% block content %}
+<div class="modal fade" id="search-client" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Seleccione el Cliente</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="dataTable_wrapper table-responsive">  
+                    <table class="table table-bordered table-hover " id="client-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%" >ID</th>
+                                <th style="width: 10%" >Tipo Identificacion</th>
+                                <th style="width: 30%" >Identificaci&oacute;n</th>
+                                <th>Raz&oacute;n Social</th>
+                                <th>Celular</th>
+                                <th>Email</th>
+                                <th>Direccion</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="POST" action="{{path('notadebito_create')}}" id="formNotaDebito">
+    <input type="text" id="idNotaDebito" value="{{entity.id}}" class="form-control hidden" name="idNotaDebito">
+    <div class="container-fluid factura">
+        {% for flashMessage in app.session.flashbag.get('notice') %}
+        <div class="col-sm-12 alert alert-danger alert-dismissable">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <h4><strong>Ha ocurrido un error al crear la Nota de Debito!</strong></h4>
+            <p>{{ flashMessage }}</p>
+        </div>
+     {% endfor %}
+        {% if entity.mensajes | length >0  and entity.estado != "AUTORIZADO"%}
+        <div class="col-sm-12 alert alert-danger alert-dismissable">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <h5><strong>Errores ocurrido durante el proceso de envio al SRI!</strong></h5>
+            {% for item in entity.mensajes %}
+                <p>{{item.mensaje}}</p>
+                <p>{{item.informacionAdicional}}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+        <fieldset class="border col-sm-12">
+            <legend class="border">Emisor</legend>
+            <div class="control-group" id="emisor">
+                <div class="col-sm-12"><p class="text-center"><strong>Ruc:</strong> {{entity.emisor.ruc}}</p></div>
+                <div class="col-sm-12 col-md-6"><strong>Raz&oacute;n Social:</strong> {{entity.emisor.razonSocial}}</div>
+                <div class="col-sm-12 col-md-6"><strong>Nombre Comercial:</strong> {%if entity.establecimiento.nombreComercial%}{{entity.establecimiento.nombreComercial}}{%else%}{{entity.emisor.nombreComercial}}{%endif%}</div>
+                <div class="col-sm-12 col-md-6"><strong>Contribuyente Especial:</strong> {{entity.emisor.contribuyenteEspecial}}</div>
+                <div class="col-sm-12 col-md-6"><strong>Obligado Contabilidad:</strong> {{entity.emisor.obligadoContabilidad}}</div>
+                <div class="col-sm-12 col-md-6"><strong>Direcci&oacute;n Matriz:</strong> {{entity.emisor.direccionMatriz}}</div>
+                <div class="col-sm-12 col-md-6"><strong>Direcci&oacute;n Establecimiento:</strong> {{entity.establecimiento.direccion}}</div>
+            </div>
+        </fieldset>
+
+        <fieldset class="border  col-sm-12 ">
+            <legend class="border">Comprobante</legend>
+            <div class="control-group" id="comprobante">
+                <div class="col-sm-6 col-lg-3"><strong>Ambiente:</strong> {% if entity.emisor.ambiente == 1%} Pruebas {% else %} Producci&oacute;n {% endif %}</div>
+                <div class="col-lg-4"><strong>Tipo Emisi&oacute;n:</strong> {% if entity.emisor.tipoEmision == 1%} Emisi&oacute;n Normal {% else %} Emisi&oacute;n por Indisponibilidad del Sistema {% endif %}</div>
+                <div class="col-sm-12 col-lg-5"><strong>Fecha Emisi&oacute;n: *</strong> <input type="text" value="{{entity.fechaEmision |date('d/m/Y')}}" id="fecha" size="8" name="fechaEmision" required="required" onchange="CrearClaveAcceso()"/> </div>
+                <div class="col-sm-12"><p class="text-center"><strong>Clave Acceso</strong></p></div>
+                <div class="col-sm-12 claveAcceso"><p class="text-center" id="claveAcceso"></p></div>
+            </div>
+        </fieldset>
+        <fieldset class="border  col-sm-12 ">
+            <legend class="border">Comprobante Modificado</legend>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label">Tipo Documento: *</label>
+                    <select class="form-control"  name="tipoDocumento" required="required" value = "{{entity.tipoDocMod}}">
+                        <option value="01">Factura</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="control-label">Fecha Emisi&oacute;n: *</label>
+                    <input type="text" id="fechaDocModificado" class="form-control" value="{{entity.fechaEmisionDocMod |date('d/m/Y')}}" size="8" name="fechaDocModificado" required="required" />
+                </div>
+                <div class="col-md-5">
+                    <label class="control-label">Nro Comprobante: *</label>
+                    <input type="text" id="numeroDocMod" class="form-control" value="{{entity.nroDocMod}}" name="numeroDocMod" required="required">
+                </div>
+
+            </div>
+        </fieldset>
+{% set datos = entity.emisor.ruc ~ ',' ~ entity.emisor.ambiente ~ ',' ~ entity.emisor.tipoEmision ~ ',' ~ entity.establecimiento.codigo~ ','~ entity.ptoEmision.codigo ~',' ~ secuencial ~',' ~ "05"%}
+        <input id="datos" type="hidden" value="{{datos}}" />
+        <input type="hidden" name="secuencial" value="{{secuencial}}" />
+        <fieldset class="border col-sm-12">
+
+            <legend class="border">Cliente</legend>
+
+            <div class="form-group">
+                <div class="checkbox col-sm-6 ">
+                    <label>
+                        <input type="checkbox" value=false id="nuevoCliente" name = "nuevoCliente">
+                        <strong>Nuevo Cliente</strong>
+                    </label>
+                </div>
+
+                <div class="col-sm-6 text-right">
+                    <button class="btn btn-info link-boton accion" data-toggle="modal" data-target="#search-client" type="button">
+                        <i class="glyphicon glyphicon-search icon-white">Buscar</i>
+                    </button>
+
+                </div>
+                <input type="text" id="idCliente" value="{{entity.cliente.id}}" class="form-control hidden" name="idCliente">
+                <div class="col-md-5">
+                    <label class="control-label">Nombre</label>
+                    <input type="text" value="{{entity.cliente.nombre}}" id="nombre"  class="form-control" name="nombre" required="required">
+                </div>
+                <div class="col-md-3">
+                    <label class="control-label">Celular</label>
+                    <input type="text" value="{{entity.cliente.celular}}" id="celular" class="form-control" name="celular" >
+                </div>
+                <div class="col-md-4">
+                    <label class="control-label">Email </label>
+                    <input type="email" value="{{entity.cliente.correoElectronico}}" id="email" class="form-control" name="email" >
+                </div>
+                <div class="col-md-3">
+                    <label class="control-label">Tipo Identificaci&oacute;n *</label>
+                    <select class="form-control" id="tipoIdentificacion" name="tipoIdentificacion" required="required">
+                        <option value="04" {%if entity.cliente.tipoIdentificacion =="04"%} selected {%endif%}>RUC</option>
+                        <option value="05" {%if entity.cliente.tipoIdentificacion =="05"%} selected {%endif%}>CEDULA</option>
+                        <option value="06" {%if entity.cliente.tipoIdentificacion =="06"%} selected {%endif%}>PASAPORTE</option>
+                        <option value="07" {%if entity.cliente.tipoIdentificacion =="07"%} selected {%endif%}>CONSUMIDOR FINAL</option>
+                        <option value="08" {%if entity.cliente.tipoIdentificacion =="08"%} selected {%endif%}>EXTERIOR</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="control-label">Identificaci&oacute;n *</label>
+                    <input type="text" value="{{entity.cliente.identificacion}}" id="identificacion"  class="form-control" name="identificacion" required="required" > 
+                </div>
+                <div class="col-md-6">
+                    <label class="control-label">Direcci&oacute;n</label>
+                    <input type="text" value="{{entity.cliente.direccion}}" id="direccion" class="form-control" name="direccion" >
+                </div>
+            </div>
+        </fieldset> 
+    </div>
+
+    <legend class="border">Detalle Nota D&eacute;bito</legend>
+    <div class="col-sm-12 text-right">
+        <button class="btn btn-info link-boton accion" id="nuevoDetalle" type="button">
+            <i class="glyphicon glyphicon-plus-sign icon-white"> Nuevo</i>
+        </button>
+    </div>
+
+    <div class="dataTable_wrapper table-responsive col-lg-12">  
+        <table class="table table-striped table-bordered table-hover" id="detalles">
+            <thead>
+            <thead>
+                <tr>
+                    <th >Raz&oacute;n Modificaci&oacute;n</th>
+                    <th>Valor Modificaci&oacute;n</th>
+                    <th>Accion</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in entity.motivos %}
+                <tr>
+                    <td>
+                        <input type = 'text' value="{{item.razon}}" name = 'motivo[{{item.id}}]' required='required' />
+                    </td>
+                    <td>
+                        <input type = 'text' value="{{item.valor}}" name = 'valorMod[{{item.id}}]' class = 'valor' id = 'valorMod{{item.id}}' required='required' onchange = 'calcularValores()'/>
+                    </td>
+                    <td> 
+                        <button class='btn btn-danger link-boton accion'  type='button' onclick = "eliminarFila(this)">
+                            <i class='glyphicon glyphicon-trash icon-white'></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div> 
+
+    <div class="col-xs-12 col-sm-12 col-md-4 col-md-offset-8">
+        <div class="col-xs-10 col-sm-8 text-right">SubTotal Sin Impuesto</div> 
+        <div class="col-xs-2 col-sm-4">
+            <p class="" id="subTotalSinImpuesto">{{entity.totalSinImpuestos}}</p>
+        </div>
+        <div class="col-xs-10 col-sm-8 text-right">Sub Total 12%</div>
+        <div class="col-xs-2 col-sm-4">
+            <p class="text-left"><span id="subTotal12">{{entity.subtotal12}}</span> <input type="radio" name="impuesto" value="2" {%if entity.subtotal12 != "0.00" %}checked="checked"{% endif %}/></p>
+        </div>
+        <div class="col-xs-10 col-sm-8 text-right">Sub Total 0%</div>
+        <div class="col-xs-2 col-sm-4">
+            <p class="text-left" ><span id="subTotal0">{{entity.subtotal0}}</span> <input  type="radio" name="impuesto" value="0" {%if entity.subtotal0 != "0.00"%}checked="checked"{% endif %}/></p>
+        </div>
+        <div class="col-xs-10 col-sm-8 text-right">Sub Total No Objeto IVA</div>
+        <div class="col-xs-2 col-sm-4">
+            <p class="text-left"><span id="subTotaNoObjeto">{{entity.subtotalNoIVA}}</span> <input type="radio" name="impuesto" value="6" {%if entity.subtotalNoIVA != "0.00"%}checked="checked"{% endif %}/></p>
+        </div>
+        <div class="col-xs-10 col-sm-8 text-right">Sub Exento IVA</div>
+        <div class="col-xs-2 col-sm-4">
+            <p class="text-left"><span id="subTotaExento">{{entity.subtotalExentoIVA}}</span> <input  type="radio" name="impuesto" value="7" {%if entity.subtotalExentoIVA != "0.00"%}checked="checked"{% endif %}/></p>
+        </div>
+        <div class="col-xs-10 col-sm-8 text-right">Valor ICE</div>
+        <div class="col-xs-2 col-sm-4">
+            <input type="text"  value="{{entity.valorICE}}" id="valorICE" name="valorICE" class="form-control"/>
+        </div>
+        {% set codICE = 0 %} 
+        {%for item in entity.impuestos %}
+          {% if item.codigo == "03" %}
+             {% set codICE = item.codigoPorcentaje %}
+          {% endif %}
+        {% endfor %}
+        <div class="col-xs-10 col-sm-8 text-right codICE">Cod ICE</div>
+        <div class="col-xs-2 col-sm-4 codICE">
+            <input type="text"  id="codICE" name="codICE" class="form-control" {%if codICE == 0 %} disabled="disabled" {% else %} value="{{codICE}}" {% endif %}/>
+        </div>
+        <div class="col-xs-10 col-sm-8 text-right">IVA 12%</div>
+        <div class="col-xs-2 col-sm-4">
+            <p class="text-left" id="iva12">{{entity.iva12}}</p>
+        </div>
+        <div class="col-xs-10 col-sm-8 text-right">VALOR TOTAL</div>
+        <div class="col-xs-2 col-sm-4">
+            <p class="text-left" id="valorTotal">{{entity.valorTotal}}</p>
+        </div>
+    </div>
+    <button id="submit" class="hidden" type="submit">
+    </button>
+
+</form>
+
+
+{% endblock %}
+
+{% block javascript %}
+<script src="{{asset('recursos/bower_components/datatables/media/js/jquery.dataTables.js')}}"></script>
+<script src="{{asset('recursos/bower_components/datatables-plugins/integration/bootstrap/3/dataTables.bootstrap.min.js')}}"></script>
+<script src="{{asset('recursos/js/script.js')}}"></script>
+
+<script>
+                            var count = 0;
+                            var oTable = $("#client-table").dataTable({
+                                responsive: true,
+                                bAutoWidth: false,
+                                sAjaxSource: "{{ path('all_client')}}",
+                                bProcessing: true,
+                                bServerSide: true,
+                                bSort: false,
+                                asStripeClasses: [],
+                                aLengthMenu: [[5, 10, 15], [5, 10, 15]],
+                                aoColumns: [{"bVisible": false}, {"bVisible": false}, null, null, {"bVisible": false}, {"bVisible": false}, {"bVisible": false}],
+                                language: {
+                                    sProcessing: "Procesando...",
+                                    sLengthMenu: "Mostrar _MENU_",
+                                    sZeroRecords: "No se encontraron resultados",
+                                    sEmptyTable: "Ningún dato disponible en esta tabla",
+                                    sInfo: "Mostrando del _START_ al _END_ de _TOTAL_ registros",
+                                    sInfoEmpty: "Mostrando del 0 al 0 de un total de 0 registros",
+                                    sInfoFiltered: "(filtrado de un total de _MAX_ registros)",
+                                    sInfoPostFix: "",
+                                    sSearch: "Buscar:",
+                                    sUrl: "",
+                                    sInfoThousands: ",",
+                                    sLoadingRecords: "Cargando...",
+                                    oPaginate: {
+                                        sFirst: "Primero",
+                                        sLast: "Último",
+                                        sNext: "Siguiente",
+                                        sPrevious: "Anterior"
+                                    },
+                                    oAria: {
+                                        sSortAscending: ": Activar para ordenar la columna de manera ascendente",
+                                        sSortDescending: ": Activar para ordenar la columna de manera descendente"
+                                    },
+                                },
+                            });
+                            $('#client-table_filter input').unbind();
+                            $('#client-table_filter input').bind('keyup', function(e) {
+                                if (e.keyCode == 13) {
+                                    oTable.fnFilter($(this).val());
+                                }
+                            });
+                            $('#client-table tbody').on('click', 'tr', function() {
+                                var aData = oTable.fnGetData(this); // get datarow
+                                if (null != aData)  // null if we clicked on title row
+                                {
+                                    $("#idCliente").val(aData[0]);
+                                    $("#tipoIdentificacion").val(aData[1]);
+                                    $("#identificacion").val(aData[2]);
+                                    $("#nombre").val(aData[3]);
+                                    $("#celular").val(aData[4]);
+                                    $("#email").val(aData[5]);
+                                    $("#direccion").val(aData[6]);
+                                    $('#search-client').modal('toggle');
+                                    $('#nuevoCliente').prop('checked', false);
+                                    $('#nuevoCliente').val(false);
+                                }
+                            });
+                            $('#nuevoCliente').click(function() {
+                                $("#idCliente").val("");
+                                $("#tipoIdentificacion").val("");
+                                $("#identificacion").val("");
+                                $("#nombre").val("");
+                                $("#celular").val("");
+                                $("#email").val("");
+                                $("#direccion").val("");
+                                $('#nuevoCliente').prop('checked', true);
+                                $('#nuevoCliente').val(true);
+                            });
+                            $("form").keypress(function(e) {
+                                if (e.which == 13) {
+                                    return false;
+                                }
+                            });
+                            $("#formNotaDebito").validate({
+                                errorClass: "my-error-class",
+                                validClass: "my-valid-class",
+                                rules: {
+                                    nombre: {
+                                        required: true,
+                                    },
+                                    tipoIdentificacion: {
+                                        required: true,
+                                    },
+                                    identificacion: {
+                                        required: true,
+                                    },
+                                    valorICE: {
+                                        required: true,
+                                        number: true,
+                                    },
+                                    codICE: {
+                                        required: true,
+                                        digits: true,
+                                    },
+                                }
+
+                            });
+
+                            $('#nuevoCliente').val(false);
+                            count = $('#detalles > tbody:last tr').length;
+                            $("#nuevoDetalle").click(function() {
+                                count = count + 1;
+                                $('#detalles > tbody:last').append("<tr><td><input type = 'text' name = 'motivo[" + count + "]' required='required' /></td><td><input type = 'text' name = 'valorMod[" + count + "]' class = 'valor' id = 'valorMod" + count + "' required='required' onchange = 'calcularValores()'/></td><td> <button class='btn btn-danger link-boton accion'  type='button' onclick = 'eliminarFila(this)'>"
+                                        + "<i class='glyphicon glyphicon-trash icon-white'></i></button></td></tr>");
+                                $('#valorMod' + count).rules("add", {
+                                    number: true,
+                                });
+                            });
+                            function eliminarFila(e) {
+                                $(e).parent().parent().remove();
+                                calcularValores();
+                            }
+
+                            function calcularValores() {
+                                var subTotalSinImpuesto = 0;
+                                $(".valor").each(function(index, element) {
+                                    subTotalSinImpuesto += parseFloat($(element).val());
+                                });
+                                $("#subTotalSinImpuesto").text(subTotalSinImpuesto.toFixed(2));
+                                calcularTotal();
+                            }
+
+                            function calcularTotal() {
+                                var total = 0;
+                                var iva12 = 0;
+                                if ($('input:radio[name=impuesto]:checked').val() == '2') {
+                                    iva12 = parseFloat($("#subTotalSinImpuesto").text()) * 0.12;
+                                    $("#iva12").text(iva12.toFixed(2));
+                                } else {
+                                    $("#iva12").text('0.00');
+                                }
+
+                                total = (iva12 + parseFloat($("#subTotalSinImpuesto").text())).toFixed(2);
+                                $("#valorTotal").text(total);
+
+
+                                $("#subTotal12").text("0.00");
+                                $("#subTotal0").text("0.00");
+                                $("#subTotaNoObjeto").text("0.00");
+                                $("#subTotaExento").text("0.00");
+                                var subTotalSinImpuesto = $("#subTotalSinImpuesto").text()
+                                var checked = $('input:radio[name=impuesto]:checked').val();
+                                if (checked == '2') {
+                                    $("#subTotal12").text(subTotalSinImpuesto);
+                                } else if (checked == '0') {
+                                    $("#subTotal0").text(subTotalSinImpuesto);
+                                }
+                                else if (checked == '6') {
+                                    $("#subTotaNoObjeto").text(subTotalSinImpuesto);
+                                }
+                                else if (checked == '7') {
+                                    $("#subTotaExento").text(subTotalSinImpuesto);
+                                }
+                            }
+
+                            $("input[name=impuesto]").change(function() {
+                                calcularTotal();
+                            });
+
+                            $("#valorICE").change(function(e) {
+                                if (parseFloat($("#valorICE").val()) > 0) {
+                                    $("#codICE").prop('disabled', false);
+                                } else {
+                                    $("#codICE").prop('disabled', true);
+                                    $("#codICE").val("");
+                                }
+                            });
+</script>
+{% endblock %}
+

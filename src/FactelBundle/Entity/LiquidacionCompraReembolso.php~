@@ -1,0 +1,121 @@
+<?php
+
+namespace FactelBundle\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+use Knp\DoctrineBehaviors\Model as ORMBehaviors;
+
+/**
+ * Impuesto
+ *
+ * @ORM\Table()
+ * @ORM\Entity
+ */
+class LiquidacionCompraReembolso {
+
+    use ORMBehaviors\Timestampable\Timestampable,
+        ORMBehaviors\Blameable\Blameable
+    ;
+
+    /**
+     * @var integer
+     *
+     * @ORM\Column(name="id", type="integer")
+     * @ORM\Id
+     * @ORM\GeneratedValue(strategy="AUTO")
+     */
+    protected $id;
+
+     /**
+     * @var string
+     *
+     * @ORM\Column(name="tipoProveedorReembolso", type="string", length=4)
+     */
+    protected $tipoProveedorReembolso;
+        
+    
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="tipoIdentificacionProveedorReembolso", type="string", length=2)
+     */
+    protected $tipoIdentificacionProveedorReembolso;
+    
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="identificacionProveedorReembolso", type="string", length=20)
+     */
+    protected $identificacionProveedorReembolso;
+    
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="estabDocReembolso", type="string", length=3)
+     */
+    protected $estabDocReembolso;
+    
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="ptoEmiDocReembolso", type="string", length=3)
+     */
+    protected $ptoEmiDocReembolso;
+    
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="secuencialDocReembolso", type="string", length=20)
+     */
+    protected $secuencialDocReembolso;
+    
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="fechaEmisionDocReembolso", type="date")
+     */
+    protected $fechaEmisionDocReembolso;
+    
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="numeroautorizacionDocReemb", type="string", length=49)
+     */
+    protected $numeroautorizacionDocReemb;
+    
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="codDocReembolso", type="string", length=4)
+     */
+    protected $codDocReembolso;
+
+    /**
+     * @var integer
+     *
+     * @ORM\Column(name="baseImponibleReembolso", type="decimal", scale=2)
+     */
+    protected $baseImponibleReembolso;
+    
+    /**
+     * @var integer
+     *
+     * @ORM\Column(name="impuestoReembolso", type="decimal", scale=2)
+     */
+    protected $impuestoReembolso;
+    
+    /**
+     * @var integer
+     *
+     * @ORM\Column(name="baseImponibleSinIvaReembolso", type="decimal", scale=2)
+     */
+    protected $baseImponibleSinIvaReembolso;
+    /**
+     * @ORM\ManyToOne(targetEntity="LiquidacionCompra", inversedBy="reembolsos")
+     * @ORM\JoinColumn(name="liquidacionCompra_id", referencedColumnName="id", nullable=false)
+     */
+    protected $liquidacionCompra;
+
+   
+
+}

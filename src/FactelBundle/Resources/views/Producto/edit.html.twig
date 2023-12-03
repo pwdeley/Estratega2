@@ -1,0 +1,71 @@
+    
+{% extends "FactelBundle::Layout.html.twig" %}
+{% block panel_title %}
+    <i class="fa fa-bar-chart-o fa-fw"></i> {{entity.nombre}}
+    <div class="pull-right">
+        <div class="btn-group">
+            <button class="btn btn-info btn-xs dropdown-toggle"
+                    type="button" data-toggle="dropdown">
+                <i class="fa fa-list"></i>
+                Acciones <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                <li><a href="" onclick="document.getElementById('submit').click();
+                        return false;"><i class="fa fa-floppy-o"></i> Guardar</a></li>
+                <li><a href="{{ path('producto_new') }}"><i class="fa fa-plus-circle"></i> Nuevo</a></li>
+                <li><a href="{{ path('producto') }}"><i class="fa fa-undo"></i> Cancelar</a></li>
+                <li class="divider"></li>
+                <li><a class="accion" href="" data-toggle="modal" data-target="#confirm-delete" type="button" accion = "delete"><i class="glyphicon glyphicon-trash icon-white"></i> Eliminar</a></li>
+            </ul>
+        </div>
+
+    </div>
+{% endblock %}
+{% block content %}
+
+    {{ form_start(edit_form) }}
+    {{ form_widget(edit_form) }}
+    <div class="form-group">
+        <div class="checkbox col-sm-10 col-sm-offset-2" style="margin-bottom: 10px">
+            <label>
+                <input type="checkbox" value="{{entity.tieneSubsidio}}" id="tieneSubsidio" name = "tieneSubsidio" {%if entity.tieneSubsidio == 1%}checked="checked"{% endif %}>
+                <strong>Tiene Subsidio?</strong>
+            </label>
+        </div>
+        <div id="subsidio">
+            <div  class="col-sm-2" style="text-align: right">
+                <label class="control-label">Precio Sin Subsidio </label>
+            </div >
+            <div class="col-sm-3">
+                <input type="text"  id="precioSinSubsidio" class="form-control" name="precioSinSubsidio" value="{{entity.precioSinSubsidio}}">
+            </div>
+        </div>
+    </div>
+    <button id="submit" class="hidden" type="submit">
+    </button>
+
+
+    {{ form_end(edit_form) }}
+    {{ form(delete_form) }}
+
+{% endblock %}
+{% block javascript %}
+    <script>
+        $("#subsidio").hide();
+        if ($('#tieneSubsidio').val() === "1") {
+            $("#subsidio").show();
+        }
+        $('#tieneSubsidio').click(function () {
+            console.log($('#tieneSubsidio').val())
+            if ($('#tieneSubsidio').val() === 'false') {
+                $('#tieneSubsidio').prop('checked', true);
+                $('#tieneSubsidio').val(true);
+                $("#subsidio").show();
+            } else {
+                $('#tieneSubsidio').prop('checked', false);
+                $('#tieneSubsidio').val(false);
+                $("#subsidio").hide();
+            }
+        })
+    </script>
+{% endblock %}

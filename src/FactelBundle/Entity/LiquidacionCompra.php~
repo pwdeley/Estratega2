@@ -1,0 +1,1086 @@
+<?php
+
+namespace FactelBundle\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+use Knp\DoctrineBehaviors\Model as ORMBehaviors;
+
+/**
+ * LiquidacionCompra
+ * @ORM\Entity(repositoryClass="FactelBundle\Entity\Repository\LiquidacionCompraRepository")
+ */
+class LiquidacionCompra {
+
+    use ORMBehaviors\Timestampable\Timestampable,
+        ORMBehaviors\Blameable\Blameable
+    ;
+
+    /**
+     * @var integer
+     *
+     * @ORM\Column(name="id", type="integer")
+     * @ORM\Id
+     * @ORM\GeneratedValue(strategy="AUTO")
+     */
+    protected $id;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="claveAcceso", type="string", length=49)
+     */
+    protected $claveAcceso;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="numeroAutorizacion", type="string", length=49, nullable=true)
+     */
+    protected $numeroAutorizacion;
+
+    /**
+     * @var \DateTime
+     *
+     * @ORM\Column(name="fechaAutorizacion", type="datetime", nullable=true)
+     */
+    protected $fechaAutorizacion;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="estado", type="string", length=100)
+     */
+    protected $estado;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="ambiente", type="string", length=1)
+     */
+    protected $ambiente;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="tipoEmision", type="string", length=100)
+     */
+    protected $tipoEmision;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="secuencial", type="string", length=9)
+     */
+    protected $secuencial;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="formaPago", type="string", length=4)
+     */
+    protected $formaPago;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="plazo", type="string", length=6, nullable=true)
+     */
+    protected $plazo;
+
+    /**
+     * @var \DateTime
+     *
+     * @ORM\Column(name="fechaEmision", type="date")
+     */
+    protected $fechaEmision;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="nombreArchivo", type="string", length=200, nullable=true)
+     */
+    protected $nombreArchivo;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="Cliente", inversedBy="liquidacionescompra")
+     * @ORM\JoinColumn(name="cliente_id", referencedColumnName="id", nullable=false)
+     */
+    protected $cliente;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="Emisor", inversedBy="liquidacionescompra")
+     * @ORM\JoinColumn(name="emisor_id", referencedColumnName="id", nullable=false)
+     */
+    protected $emisor;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="Establecimiento", inversedBy="liquidacionescompra")
+     * @ORM\JoinColumn(name="establecimiento_id", referencedColumnName="id", nullable=false)
+     */
+    protected $establecimiento;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="PtoEmision", inversedBy="liquidacionescompra")
+     * @ORM\JoinColumn(name="ptoEmision_id", referencedColumnName="id", nullable=false)
+     */
+    protected $ptoEmision;
+
+    /**
+     * @ORM\OneToMany(targetEntity="CampoAdicional", mappedBy="liquidacionCompra", cascade={"persist"})
+     */
+    protected $composAdic;
+
+    /**
+     * @ORM\OneToMany(targetEntity="LiquidacionCompraHasProducto", mappedBy="liquidacionCompra", cascade={"persist"})
+     */
+    protected $liquidacionesCompraHasProducto;
+
+    /**
+     * @ORM\OneToMany(targetEntity="Mensaje", mappedBy="liquidacionCompra")
+     */
+    protected $mensajes;
+
+    /**
+     * @ORM\OneToMany(targetEntity="LiquidacionCompraReembolso", mappedBy="liquidacionCompra", cascade={"persist"})
+     */
+    protected $reembolsos;
+    
+    /**
+     * @var decimal
+     *
+     * @ORM\Column(name="totalSinImpuestos", type="decimal", scale=2)
+     */
+    protected $totalSinImpuestos;
+
+    /**
+     * @var decimal
+     *
+     * @ORM\Column(name="subtotal12", type="decimal", scale=2)
+     */
+    protected $subtotal12;
+
+    /**
+     * @var decimal
+     *
+     * @ORM\Column(name="subtotal0", type="decimal", scale=2)
+     */
+    protected $subtotal0;
+
+    /**
+     * @var float
+     *
+     * @ORM\Column(name="subtotalNoIVA", type="decimal", scale=2)
+     */
+    protected $subtotalNoIVA;
+
+    /**
+     * @var float
+     *
+     * @ORM\Column(name="subtotalExentoIVA", type="decimal", scale=2)
+     */
+    protected $subtotalExentoIVA;
+
+    /**
+     * @var float
+     *
+     * @ORM\Column(name="valorICE", type="decimal", scale=2)
+     */
+    protected $valorICE;
+
+    /**
+     * @var float
+     *
+     * @ORM\Column(name="valorIRBPNR", type="decimal", scale=2)
+     */
+    protected $valorIRBPNR;
+
+    /**
+     * @var float
+     *
+     * @ORM\Column(name="iva12", type="decimal", scale=2)
+     */
+    protected $iva12;
+
+    /**
+     * @var float
+     *
+     * @ORM\Column(name="totalDescuento", type="decimal", scale=2)
+     */
+    protected $totalDescuento;
+
+    
+
+    /**
+     * @var float
+     *
+     * @ORM\Column(name="propina", type="decimal", scale=2)
+     */
+    protected $propina;
+
+    /**
+     * @var float
+     *
+     * @ORM\Column(name="valorTotal", type="decimal", scale=2)
+     */
+    protected $valorTotal;
+
+    /**
+     * @ORM\Column(name="firmado", type="boolean")
+     */
+    private $firmado = false;
+
+    /**
+     * @ORM\Column(name="enviarSiAutorizado", type="boolean")
+     */
+    private $enviarSiAutorizado = false;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="observacion", type="string", length=300, nullable=TRUE)
+     */
+    protected $observacion;
+
+
+    public function formaPagoStr() {
+        $formaDePago = "";
+
+        if ($this->formaPago == ("01")) {
+            $formaDePago = "SIN UTILIZACION DEL SISTEMA FINANCIERO";
+        } else if ($this->formaPago == ("15")) {
+            $formaDePago = "COMPENSACIÓN DE DEUDAS";
+        } else if ($this->formaPago == ("16")) {
+            $formaDePago = "TARJETA DE DÉBITO";
+        } else if ($this->formaPago == ("17")) {
+            $formaDePago = "DINERO ELECTRÓNICO";
+        } else if ($this->formaPago == ("18")) {
+            $formaDePago = "TARJETA PREPAGO";
+        } else if ($this->formaPago == ("19")) {
+            $formaDePago = "TARJETA DE CRÉDITO";
+        } else if ($this->formaPago == ("20")) {
+            $formaDePago = "OTROS CON UTILIZACION DEL SISTEMA FINANCIERO";
+        } else if ($this->formaPago == ("21")) {
+            $formaDePago = ">ENDOSO DE TÍTULOS";
+        }
+        return $formaDePago;
+    }
+   
+
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        $this->composAdic = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->liquidacionesCompraHasProducto = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->mensajes = new \Doctrine\Common\Collections\ArrayCollection();
+    }
+
+    /**
+     * Get id
+     *
+     * @return integer
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * Set claveAcceso
+     *
+     * @param string $claveAcceso
+     *
+     * @return LiquidacionCompra
+     */
+    public function setClaveAcceso($claveAcceso)
+    {
+        $this->claveAcceso = $claveAcceso;
+
+        return $this;
+    }
+
+    /**
+     * Get claveAcceso
+     *
+     * @return string
+     */
+    public function getClaveAcceso()
+    {
+        return $this->claveAcceso;
+    }
+
+    /**
+     * Set numeroAutorizacion
+     *
+     * @param string $numeroAutorizacion
+     *
+     * @return LiquidacionCompra
+     */
+    public function setNumeroAutorizacion($numeroAutorizacion)
+    {
+        $this->numeroAutorizacion = $numeroAutorizacion;
+
+        return $this;
+    }
+
+    /**
+     * Get numeroAutorizacion
+     *
+     * @return string
+     */
+    public function getNumeroAutorizacion()
+    {
+        return $this->numeroAutorizacion;
+    }
+
+    /**
+     * Set fechaAutorizacion
+     *
+     * @param \DateTime $fechaAutorizacion
+     *
+     * @return LiquidacionCompra
+     */
+    public function setFechaAutorizacion($fechaAutorizacion)
+    {
+        $this->fechaAutorizacion = $fechaAutorizacion;
+
+        return $this;
+    }
+
+    /**
+     * Get fechaAutorizacion
+     *
+     * @return \DateTime
+     */
+    public function getFechaAutorizacion()
+    {
+        return $this->fechaAutorizacion;
+    }
+
+    /**
+     * Set estado
+     *
+     * @param string $estado
+     *
+     * @return LiquidacionCompra
+     */
+    public function setEstado($estado)
+    {
+        $this->estado = $estado;
+
+        return $this;
+    }
+
+    /**
+     * Get estado
+     *
+     * @return string
+     */
+    public function getEstado()
+    {
+        return $this->estado;
+    }
+
+    /**
+     * Set ambiente
+     *
+     * @param string $ambiente
+     *
+     * @return LiquidacionCompra
+     */
+    public function setAmbiente($ambiente)
+    {
+        $this->ambiente = $ambiente;
+
+        return $this;
+    }
+
+    /**
+     * Get ambiente
+     *
+     * @return string
+     */
+    public function getAmbiente()
+    {
+        return $this->ambiente;
+    }
+
+    /**
+     * Set tipoEmision
+     *
+     * @param string $tipoEmision
+     *
+     * @return LiquidacionCompra
+     */
+    public function setTipoEmision($tipoEmision)
+    {
+        $this->tipoEmision = $tipoEmision;
+
+        return $this;
+    }
+
+    /**
+     * Get tipoEmision
+     *
+     * @return string
+     */
+    public function getTipoEmision()
+    {
+        return $this->tipoEmision;
+    }
+
+    /**
+     * Set secuencial
+     *
+     * @param string $secuencial
+     *
+     * @return LiquidacionCompra
+     */
+    public function setSecuencial($secuencial)
+    {
+        $this->secuencial = $secuencial;
+
+        return $this;
+    }
+
+    /**
+     * Get secuencial
+     *
+     * @return string
+     */
+    public function getSecuencial()
+    {
+        return $this->secuencial;
+    }
+
+    /**
+     * Set formaPago
+     *
+     * @param string $formaPago
+     *
+     * @return LiquidacionCompra
+     */
+    public function setFormaPago($formaPago)
+    {
+        $this->formaPago = $formaPago;
+
+        return $this;
+    }
+
+    /**
+     * Get formaPago
+     *
+     * @return string
+     */
+    public function getFormaPago()
+    {
+        return $this->formaPago;
+    }
+
+    /**
+     * Set plazo
+     *
+     * @param string $plazo
+     *
+     * @return LiquidacionCompra
+     */
+    public function setPlazo($plazo)
+    {
+        $this->plazo = $plazo;
+
+        return $this;
+    }
+
+    /**
+     * Get plazo
+     *
+     * @return string
+     */
+    public function getPlazo()
+    {
+        return $this->plazo;
+    }
+
+    /**
+     * Set fechaEmision
+     *
+     * @param \DateTime $fechaEmision
+     *
+     * @return LiquidacionCompra
+     */
+    public function setFechaEmision($fechaEmision)
+    {
+        $this->fechaEmision = $fechaEmision;
+
+        return $this;
+    }
+
+    /**
+     * Get fechaEmision
+     *
+     * @return \DateTime
+     */
+    public function getFechaEmision()
+    {
+        return $this->fechaEmision;
+    }
+
+    /**
+     * Set nombreArchivo
+     *
+     * @param string $nombreArchivo
+     *
+     * @return LiquidacionCompra
+     */
+    public function setNombreArchivo($nombreArchivo)
+    {
+        $this->nombreArchivo = $nombreArchivo;
+
+        return $this;
+    }
+
+    /**
+     * Get nombreArchivo
+     *
+     * @return string
+     */
+    public function getNombreArchivo()
+    {
+        return $this->nombreArchivo;
+    }
+
+    /**
+     * Set totalSinImpuestos
+     *
+     * @param string $totalSinImpuestos
+     *
+     * @return LiquidacionCompra
+     */
+    public function setTotalSinImpuestos($totalSinImpuestos)
+    {
+        $this->totalSinImpuestos = $totalSinImpuestos;
+
+        return $this;
+    }
+
+    /**
+     * Get totalSinImpuestos
+     *
+     * @return string
+     */
+    public function getTotalSinImpuestos()
+    {
+        return $this->totalSinImpuestos;
+    }
+
+    /**
+     * Set subtotal12
+     *
+     * @param string $subtotal12
+     *
+     * @return LiquidacionCompra
+     */
+    public function setSubtotal12($subtotal12)
+    {
+        $this->subtotal12 = $subtotal12;
+
+        return $this;
+    }
+
+    /**
+     * Get subtotal12
+     *
+     * @return string
+     */
+    public function getSubtotal12()
+    {
+        return $this->subtotal12;
+    }
+
+    /**
+     * Set subtotal0
+     *
+     * @param string $subtotal0
+     *
+     * @return LiquidacionCompra
+     */
+    public function setSubtotal0($subtotal0)
+    {
+        $this->subtotal0 = $subtotal0;
+
+        return $this;
+    }
+
+    /**
+     * Get subtotal0
+     *
+     * @return string
+     */
+    public function getSubtotal0()
+    {
+        return $this->subtotal0;
+    }
+
+    /**
+     * Set subtotalNoIVA
+     *
+     * @param string $subtotalNoIVA
+     *
+     * @return LiquidacionCompra
+     */
+    public function setSubtotalNoIVA($subtotalNoIVA)
+    {
+        $this->subtotalNoIVA = $subtotalNoIVA;
+
+        return $this;
+    }
+
+    /**
+     * Get subtotalNoIVA
+     *
+     * @return string
+     */
+    public function getSubtotalNoIVA()
+    {
+        return $this->subtotalNoIVA;
+    }
+
+    /**
+     * Set subtotalExentoIVA
+     *
+     * @param string $subtotalExentoIVA
+     *
+     * @return LiquidacionCompra
+     */
+    public function setSubtotalExentoIVA($subtotalExentoIVA)
+    {
+        $this->subtotalExentoIVA = $subtotalExentoIVA;
+
+        return $this;
+    }
+
+    /**
+     * Get subtotalExentoIVA
+     *
+     * @return string
+     */
+    public function getSubtotalExentoIVA()
+    {
+        return $this->subtotalExentoIVA;
+    }
+
+    /**
+     * Set valorICE
+     *
+     * @param string $valorICE
+     *
+     * @return LiquidacionCompra
+     */
+    public function setValorICE($valorICE)
+    {
+        $this->valorICE = $valorICE;
+
+        return $this;
+    }
+
+    /**
+     * Get valorICE
+     *
+     * @return string
+     */
+    public function getValorICE()
+    {
+        return $this->valorICE;
+    }
+
+    /**
+     * Set valorIRBPNR
+     *
+     * @param string $valorIRBPNR
+     *
+     * @return LiquidacionCompra
+     */
+    public function setValorIRBPNR($valorIRBPNR)
+    {
+        $this->valorIRBPNR = $valorIRBPNR;
+
+        return $this;
+    }
+
+    /**
+     * Get valorIRBPNR
+     *
+     * @return string
+     */
+    public function getValorIRBPNR()
+    {
+        return $this->valorIRBPNR;
+    }
+
+    /**
+     * Set iva12
+     *
+     * @param string $iva12
+     *
+     * @return LiquidacionCompra
+     */
+    public function setIva12($iva12)
+    {
+        $this->iva12 = $iva12;
+
+        return $this;
+    }
+
+    /**
+     * Get iva12
+     *
+     * @return string
+     */
+    public function getIva12()
+    {
+        return $this->iva12;
+    }
+
+    /**
+     * Set totalDescuento
+     *
+     * @param string $totalDescuento
+     *
+     * @return LiquidacionCompra
+     */
+    public function setTotalDescuento($totalDescuento)
+    {
+        $this->totalDescuento = $totalDescuento;
+
+        return $this;
+    }
+
+    /**
+     * Get totalDescuento
+     *
+     * @return string
+     */
+    public function getTotalDescuento()
+    {
+        return $this->totalDescuento;
+    }
+
+    /**
+     * Set propina
+     *
+     * @param string $propina
+     *
+     * @return LiquidacionCompra
+     */
+    public function setPropina($propina)
+    {
+        $this->propina = $propina;
+
+        return $this;
+    }
+
+    /**
+     * Get propina
+     *
+     * @return string
+     */
+    public function getPropina()
+    {
+        return $this->propina;
+    }
+
+    /**
+     * Set valorTotal
+     *
+     * @param string $valorTotal
+     *
+     * @return LiquidacionCompra
+     */
+    public function setValorTotal($valorTotal)
+    {
+        $this->valorTotal = $valorTotal;
+
+        return $this;
+    }
+
+    /**
+     * Get valorTotal
+     *
+     * @return string
+     */
+    public function getValorTotal()
+    {
+        return $this->valorTotal;
+    }
+
+    /**
+     * Set firmado
+     *
+     * @param boolean $firmado
+     *
+     * @return LiquidacionCompra
+     */
+    public function setFirmado($firmado)
+    {
+        $this->firmado = $firmado;
+
+        return $this;
+    }
+
+    /**
+     * Get firmado
+     *
+     * @return boolean
+     */
+    public function getFirmado()
+    {
+        return $this->firmado;
+    }
+
+    /**
+     * Set enviarSiAutorizado
+     *
+     * @param boolean $enviarSiAutorizado
+     *
+     * @return LiquidacionCompra
+     */
+    public function setEnviarSiAutorizado($enviarSiAutorizado)
+    {
+        $this->enviarSiAutorizado = $enviarSiAutorizado;
+
+        return $this;
+    }
+
+    /**
+     * Get enviarSiAutorizado
+     *
+     * @return boolean
+     */
+    public function getEnviarSiAutorizado()
+    {
+        return $this->enviarSiAutorizado;
+    }
+
+    /**
+     * Set observacion
+     *
+     * @param string $observacion
+     *
+     * @return LiquidacionCompra
+     */
+    public function setObservacion($observacion)
+    {
+        $this->observacion = $observacion;
+
+        return $this;
+    }
+
+    /**
+     * Get observacion
+     *
+     * @return string
+     */
+    public function getObservacion()
+    {
+        return $this->observacion;
+    }
+
+    /**
+     * Set cliente
+     *
+     * @param \FactelBundle\Entity\Cliente $cliente
+     *
+     * @return LiquidacionCompra
+     */
+    public function setCliente(\FactelBundle\Entity\Cliente $cliente)
+    {
+        $this->cliente = $cliente;
+
+        return $this;
+    }
+
+    /**
+     * Get cliente
+     *
+     * @return \FactelBundle\Entity\Cliente
+     */
+    public function getCliente()
+    {
+        return $this->cliente;
+    }
+
+    /**
+     * Set emisor
+     *
+     * @param \FactelBundle\Entity\Emisor $emisor
+     *
+     * @return LiquidacionCompra
+     */
+    public function setEmisor(\FactelBundle\Entity\Emisor $emisor)
+    {
+        $this->emisor = $emisor;
+
+        return $this;
+    }
+
+    /**
+     * Get emisor
+     *
+     * @return \FactelBundle\Entity\Emisor
+     */
+    public function getEmisor()
+    {
+        return $this->emisor;
+    }
+
+    /**
+     * Set establecimiento
+     *
+     * @param \FactelBundle\Entity\Establecimiento $establecimiento
+     *
+     * @return LiquidacionCompra
+     */
+    public function setEstablecimiento(\FactelBundle\Entity\Establecimiento $establecimiento)
+    {
+        $this->establecimiento = $establecimiento;
+
+        return $this;
+    }
+
+    /**
+     * Get establecimiento
+     *
+     * @return \FactelBundle\Entity\Establecimiento
+     */
+    public function getEstablecimiento()
+    {
+        return $this->establecimiento;
+    }
+
+    /**
+     * Set ptoEmision
+     *
+     * @param \FactelBundle\Entity\PtoEmision $ptoEmision
+     *
+     * @return LiquidacionCompra
+     */
+    public function setPtoEmision(\FactelBundle\Entity\PtoEmision $ptoEmision)
+    {
+        $this->ptoEmision = $ptoEmision;
+
+        return $this;
+    }
+
+    /**
+     * Get ptoEmision
+     *
+     * @return \FactelBundle\Entity\PtoEmision
+     */
+    public function getPtoEmision()
+    {
+        return $this->ptoEmision;
+    }
+
+    /**
+     * Add composAdic
+     *
+     * @param \FactelBundle\Entity\CampoAdicional $composAdic
+     *
+     * @return LiquidacionCompra
+     */
+    public function addComposAdic(\FactelBundle\Entity\CampoAdicional $composAdic)
+    {
+        $this->composAdic[] = $composAdic;
+
+        return $this;
+    }
+
+    /**
+     * Remove composAdic
+     *
+     * @param \FactelBundle\Entity\CampoAdicional $composAdic
+     */
+    public function removeComposAdic(\FactelBundle\Entity\CampoAdicional $composAdic)
+    {
+        $this->composAdic->removeElement($composAdic);
+    }
+
+    /**
+     * Get composAdic
+     *
+     * @return \Doctrine\Common\Collections\Collection
+     */
+    public function getComposAdic()
+    {
+        return $this->composAdic;
+    }
+
+    /**
+     * Add liquidacionesCompraHasProducto
+     *
+     * @param \FactelBundle\Entity\LiquidacionCompraHasProducto $liquidacionesCompraHasProducto
+     *
+     * @return LiquidacionCompra
+     */
+    public function addLiquidacionesCompraHasProducto(\FactelBundle\Entity\LiquidacionCompraHasProducto $liquidacionesCompraHasProducto)
+    {
+        $this->liquidacionesCompraHasProducto[] = $liquidacionesCompraHasProducto;
+
+        return $this;
+    }
+
+    /**
+     * Remove liquidacionesCompraHasProducto
+     *
+     * @param \FactelBundle\Entity\LiquidacionCompraHasProducto $liquidacionesCompraHasProducto
+     */
+    public function removeLiquidacionesCompraHasProducto(\FactelBundle\Entity\LiquidacionCompraHasProducto $liquidacionesCompraHasProducto)
+    {
+        $this->liquidacionesCompraHasProducto->removeElement($liquidacionesCompraHasProducto);
+    }
+
+    /**
+     * Get liquidacionesCompraHasProducto
+     *
+     * @return \Doctrine\Common\Collections\Collection
+     */
+    public function getLiquidacionesCompraHasProducto()
+    {
+        return $this->liquidacionesCompraHasProducto;
+    }
+
+    /**
+     * Add mensaje
+     *
+     * @param \FactelBundle\Entity\Mensaje $mensaje
+     *
+     * @return LiquidacionCompra
+     */
+    public function addMensaje(\FactelBundle\Entity\Mensaje $mensaje)
+    {
+        $this->mensajes[] = $mensaje;
+
+        return $this;
+    }
+
+    /**
+     * Remove mensaje
+     *
+     * @param \FactelBundle\Entity\Mensaje $mensaje
+     */
+    public function removeMensaje(\FactelBundle\Entity\Mensaje $mensaje)
+    {
+        $this->mensajes->removeElement($mensaje);
+    }
+
+    /**
+     * Get mensajes
+     *
+     * @return \Doctrine\Common\Collections\Collection
+     */
+    public function getMensajes()
+    {
+        return $this->mensajes;
+    }
+}

@@ -1,0 +1,157 @@
+{% extends "FactelBundle::Layout.html.twig" %}
+{% block css %}
+<!-- DataTables CSS -->
+<link href="{{asset('recursos/bower_components/datatables-plugins/integration/bootstrap/3/dataTables.bootstrap.css')}}" rel="stylesheet">
+<!-- DataTables Responsive CSS -->
+<link href="{{asset('recursos/bower_components/datatables-responsive/css/dataTables.responsive.css')}}" rel="stylesheet">
+{% endblock %}
+{% block panel_title %}
+<i class="fa fa-bar-chart-o fa-fw"></i> Reporte
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-xs-12">
+        <div class="control-group">
+            <form action="{{path('comprobante_pdf')}}" name = "reporte" id = "reporte" method="GET">
+                <div class="form-group col-sm-3 col-sm-offset-1">
+                    <label for="tipoComprobante">Tipo Comprobante</label>
+                    <select class="form-control input-sm" id="tipoComprobante" name="tipoComprobante">
+                        <option value="F">FACTURA</option>
+                    </select>
+                </div>
+                <div class="form-group col-sm-3">
+                    <label for="sel1">Fecha Inicio</label>
+                    <input class="form-control input-sm" type="text" id="fechaInicial" size="8" name="fechaInicial" onchange="busqueda()"/>
+                </div>
+                <div class="form-group col-sm-3">
+                    <label for="sel1">Fecha Fin</label>
+                    <input class="form-control input-sm" type="text" id="fechaFinal" size="8" name="fechaFinal" onchange="busqueda()"/>
+                </div>
+                <input type="hidden" name="filtro" id="filtro">
+                <div class="col-sm-3 col-sm-offset-4">
+                    <a class="btn btn-success btn-xs" onclick="enviarFormulario()" type="button" id="enviar">
+                        <i class="fa fa-file-excel-o">  Descargar PDF</i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<br />
+<div class="row">
+    <div class="col-sm-12">
+        <div class="dataTable_wrapper table-responsive col-lg-12">  
+            <table class="table table-striped table-bordered table-hover" id="factura-table">
+                <thead>
+                    <tr>
+                        <th>No. Factura</th>
+                        <th>Cliente</th>
+                        <th>Forma Pago</th>
+                        <th>Fecha Emisi&oacute;n</th>
+                        <th>Valor Total</th>               
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block javascript %}
+<script src="{{asset('recursos/bower_components/datatables/media/js/jquery.dataTables.min.js')}}"></script>
+<script src="{{asset('recursos/bower_components/datatables-plugins/integration/bootstrap/3/dataTables.bootstrap.min.js')}}"></script>
+<script src="{{asset('recursos/js/script.js')}}"></script>
+<script>
+                        function enviarFormulario() {
+                            var fechaInicial = $("#fechaInicial").val();
+                            var fechaFinal = $("#fechaFinal").val();
+                            var filtro = $('#factura-table_filter input').val();
+                            var cadena = "";
+                            if (fechaInicial != "" && fechaFinal != "") {
+                                cadena = fechaInicial + "&" + fechaFinal + "&";
+                            }
+
+                            cadena = cadena + filtro;
+                            $("#filtro").val(cadena);
+                            document.reporte.submit();
+                        }
+
+                        var oTable = $("#factura-table").dataTable({
+                           
+                            responsive: true,
+                            bAutoWidth: false,
+                            sAjaxSource: "{{ path('reporte_ventas_fechas')}}",
+                            bProcessing: true,
+                            bServerSide: true,
+                            bSort: false,
+                            aLengthMenu: [[20, 30, 50], [20, 30, 50]],
+                            language: {
+                                sProcessing: "Procesando...",
+                                sLengthMenu: "Mostrar _MENU_",
+                                sZeroRecords: "No se encontraron resultados",
+                                sEmptyTable: "Ningún dato disponible en esta tabla",
+                                sInfo: "Mostrando del _START_ al _END_ de _TOTAL_ registros",
+                                sInfoEmpty: "Mostrando del 0 al 0 de un total de 0 registros",
+                                sInfoFiltered: "(filtrado de un total de _MAX_ registros)",
+                                sInfoPostFix: "",
+                                sSearch: "Buscar:",
+                                sUrl: "",
+                                sInfoThousands: ",",
+                                sLoadingRecords: "Cargando...",
+                                oPaginate: {
+                                    sFirst: "Primero",
+                                    sLast: "Último",
+                                    sNext: "Siguiente",
+                                    sPrevious: "Anterior"
+                                },
+                                oAria: {
+                                    sSortAscending: ": Activar para ordenar la columna de manera ascendente",
+                                    sSortDescending: ": Activar para ordenar la columna de manera descendente"
+                                },
+                            },
+                        });
+
+                        $('#factura-table_filter input').unbind();
+                        $('#factura-table_filter input').bind('keyup', function(e) {
+                            if (e.keyCode == 13) {
+                                var fechaInicial = $("#fechaInicial").val();
+                                var fechaFinal = $("#fechaFinal").val();
+
+                                var cadena = "";
+                                if (fechaInicial != "" && fechaFinal != "") {
+                                    cadena = fechaInicial + "&" + fechaFinal + "&";
+                                }
+
+                                oTable.fnFilter(cadena + $(this).val());
+                            }
+                        });
+                        oTable.on('search.dt', function() {
+                            var datos = $('#factura-table_filter input').val().split("&");
+                            if (datos.length == 3) {
+                                $('#factura-table_filter input').val(datos[2]);
+                            }
+                        });
+
+                        function busqueda() {
+                            var fechaInicial = $("#fechaInicial").val();
+                            var fechaFinal = $("#fechaFinal").val();
+
+                            var cadena = "";
+                            if (fechaInicial != "" && fechaFinal != "") {
+                                cadena = fechaInicial + "&" + fechaFinal + "&";
+                                oTable.fnFilter(cadena + $('#factura-table_filter input').val());
+                            }
+                            if (fechaInicial == "" && fechaFinal == "") {
+                                oTable.fnFilter($('#factura-table_filter input').val());
+                            }
+
+                        }
+
+                     
+
+                       
+</script>
+    {% endblock %}

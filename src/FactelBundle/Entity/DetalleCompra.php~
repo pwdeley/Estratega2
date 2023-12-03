@@ -1,0 +1,79 @@
+<?php
+
+namespace FactelBundle\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+
+/**
+ * FacturaHasProducto
+ *
+ * @ORM\Table()
+ * @ORM\Entity
+ */
+class DetalleCompra {
+
+    /**
+     * @var integer
+     *
+     * @ORM\Column(name="id", type="integer")
+     * @ORM\Id
+     * @ORM\GeneratedValue(strategy="AUTO")
+     */
+    protected $id;
+    
+    /**
+     * @ORM\ManyToOne(targetEntity="Compra", inversedBy="detallesCompra")
+     * @ORM\JoinColumn(name="compra_id", referencedColumnName="id", nullable=false)
+     */
+    protected $compra;
+
+    /**
+     * @ORM\Column(name="cantidad", type="decimal", scale=2)
+     */
+    protected $cantidad;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="nombre", type="string", length=300)
+     */
+    protected $nombre;
+    
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="codigoProducto", type="string", length=300)
+     */
+    protected $codigoProducto;
+    
+    /**
+     * @ORM\Column(name="precioUnitario", type="decimal", scale=2)
+     */
+    protected $precioUnitario;
+
+    /**
+     * @ORM\Column(name="descuento", type="decimal", scale=2)
+     */
+    protected $descuento;
+
+    /**
+     * @var integer
+     *
+     * @ORM\Column(name="subTotal", type="decimal", scale=2)
+     */
+    protected $subTotal;
+    
+     /**
+     * @ORM\Column(name="iva12", type="decimal", scale=2)
+     */
+    protected $iva12;
+    
+    /**
+     * @ORM\Column(name="ice", type="decimal", scale=2)
+     */
+    protected $ice;
+
+    
+   
+  
+}

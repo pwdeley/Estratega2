@@ -1,0 +1,111 @@
+{% extends "FactelBundle::Layout.html.twig" %}
+{% block css %}
+    <!-- DataTables CSS -->
+    <link href="{{asset('recursos/bower_components/datatables-plugins/integration/bootstrap/3/dataTables.bootstrap.css')}}" rel="stylesheet">
+    <!-- DataTables Responsive CSS -->
+    <link href="{{asset('recursos/bower_components/datatables-responsive/css/dataTables.responsive.css')}}" rel="stylesheet">
+{% endblock %}
+
+{% block panel_title %}
+    <i class="fa fa-bar-chart-o fa-fw"></i> Carga Masiva Factura
+    <div class="pull-right">
+
+    </div>
+{% endblock %}
+
+{% block content %}
+    {% for flashMessage in app.session.flashbag.get('notice') %}
+        <div class="col-sm-12 alert alert-danger alert-dismissable">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <h4><strong>Ha ocurrido un error!</strong></h4>
+            <p>{{ flashMessage }}</p>
+        </div>
+    {% endfor %}
+    {% for flashMessage in app.session.flashbag.get('confirm') %}
+        <div class="col-sm-12 alert alert-success alert-dismissable">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <p>{{ flashMessage }}</p>
+        </div>
+    {% endfor %}
+    <div class="col-md-12">
+        {{ form_start(form) }}
+        {{ form_widget(form) }}
+        {{ form_end(form) }}
+    </div>
+    <div class="dataTable_wrapper table-responsive col-lg-12">  
+        <table class="table table-striped table-bordered table-hover" id="data-table">
+            <thead>
+                <tr>
+                    <th>ID Carga</th>
+                    <th>Fecha Creacion</th>
+                    <th>Estado</th>
+                    <th>Inicio Procesamiento</th>
+                    <th>Fin Procesamiento</th>
+                    <th>Proceso Automatico?</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entity in entities %}
+                    <tr>
+                        <td>{{ entity.id}}</td>
+                        <td>{{ entity.createdAt |date("m/d/Y H:i:s") }}</td>
+                        <td>{{ entity.estado }}</td>
+                        <td>{%if entity.inicioProcesamiento %}{{ entity.inicioProcesamiento |date("m/d/Y H:i:s") }}{%endif%}</td>
+                        <td>{%if entity.finProcesamiento %}{{ entity.finProcesamiento |date("m/d/Y H:i:s") }}{%endif%}</td>
+                        <td>{%if entity.procesoAutomatico %}SI{%else%}NO{% endif%}</td>
+                        <td>
+                            {% if entity.estado == 'CARGADO' %}
+                                {% if entity.procesoAutomatico == false %}
+                                    <a href="{{ path('factura_procesar_masivo_auto', { 'id': entity.id }) }}" title="Proceso Automatico">
+                                        <button class="btn btn-success link-boton">
+                                            <i class="fa fa-rocket"></i>
+                                        </button>
+                                    </a>
+                                {%else%}
+                                    <a href="{{ path('factura_procesar_masivo_auto', { 'id': entity.id }) }}" title="Quitar Proceso Automatico">
+                                        <button class="btn btn-warning link-boton">
+                                            <i class="fa fa-ban"></i>
+                                        </button>
+                                    </a>
+                                {%endif%}
+                                
+                                {% if entity.procesoAutomatico == false %}
+                                    <a href="{{ path('factura_procesar_masivo', { 'id': entity.id }) }}" title="Procesar">
+                                        <button class="btn btn-primary link-boton">
+                                            <i class="fa fa-play"></i>
+                                        </button>
+                                    </a>
+                                {%endif%}
+                            {% else %}
+                                <a href="{{ path('facturas_load_errors', { 'id': entity.id }) }}" title="Ver Errores">
+                                    <button class="btn btn-danger link-boton">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                </a>
+                            {%endif%}
+
+
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if errors is defined%}
+            <ul class="list-group">
+                {% if errors|length > 0 %}
+                    {% for error in errors %}
+                        <li class="list-group-item list-group-item-danger">{{error}}</li>
+                        {% endfor %}
+                    {%else %}
+                    <li class="list-group-item list-group-item-success">Archivo procesado sin errores</li>
+                    {% endif %}
+            </ul>
+        {% endif %}
+    </div>
+{% endblock %}
+{% block javascript %}
+<script src="{{asset('recursos/bower_components/datatables/media/js/jquery.dataTables.min.js')}}"></script>
+<script src="{{asset('recursos/bower_components/datatables-plugins/integration/bootstrap/3/dataTables.bootstrap.min.js')}}"></script>
+<script src="{{asset('recursos/js/script.js')}}"></script>
+{% endblock %}

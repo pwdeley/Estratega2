@@ -1,0 +1,79 @@
+{% extends "FactelBundle::Layout.html.twig" %}
+{% block css %}
+<!-- DataTables CSS -->
+<link href="{{asset('recursos/bower_components/datatables-plugins/integration/bootstrap/3/dataTables.bootstrap.css')}}" rel="stylesheet">
+<!-- DataTables Responsive CSS -->
+<link href="{{asset('recursos/bower_components/datatables-responsive/css/dataTables.responsive.css')}}" rel="stylesheet">
+{% endblock %}
+{% block panel_title %}
+<i class="fa fa-bar-chart-o fa-fw"></i> Usuarios
+<div class="pull-right">
+    <a href="{{ path('usuario_new') }}">
+        <button class="btn btn-primary link-boton">
+            <i class="fa fa-plus-circle"></i>
+            Nuevo
+        </button>
+    </a>
+</div>
+{% endblock %}
+{% block content %}
+<div class="dataTable_wrapper table-responsive col-lg-12">  
+    <table class="table table-striped table-bordered table-hover" id="data-table">
+        <thead>
+            <tr>
+
+                <th>Username</th>
+                <th>Nombre</th>
+                <th>Apellidos</th>
+                {% if not is_granted('ROLE_ADMIN') %}
+                <th>Email</th>
+                {% endif %}
+                {% if is_granted('ROLE_ADMIN') %}
+                <th>Emisor</th>
+                {% endif %}
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for entity in entities %}
+            <tr>
+                <td><a href="{{ path('usuario_show', { 'id': entity.id }) }}">{{ entity.username }}</a></td>
+                <td>{{ entity.nombre }}</td>
+                <td>{{ entity.apellidos }}</td>
+                
+                {% if not is_granted('ROLE_ADMIN') %}
+                <td>{{ entity.email }}</td>
+                {% endif %}
+                {% if is_granted('ROLE_ADMIN') %}
+                <td>
+                    {{entity.emisor.razonSocial}}
+                </td>
+
+                {% endif %}
+                <td class="rol">{{ entity.getRolesString }}</td>
+                <td>{%if entity.isActive %}<button disabled="disabled" class="btn btn-success link-boton">Activo</button>{%else%}<button disabled="disabled" class="btn btn-danger link-boton">Inactivo</button>{% endif%}</td>
+                <td>
+                    <a href="{{ path('usuario_edit', { 'id': entity.id }) }}" title="Editar">
+                        <button class="btn btn-primary link-boton">
+                            <i class="fa fa-pencil-square-o"></i>
+                        </button>
+                    </a>
+
+                    <button class="btn btn-danger link-boton accion" data-toggle="modal" data-target="#confirm-delete" type="button" accion = "{{entity.id}}">
+                        <i class="glyphicon glyphicon-trash icon-white"></i>
+                    </button>
+                     {{ form(deleteForms[entity.id], { 'attr': {'id': entity.id } })}}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+    {% endblock %}
+{% block javascript %}
+<script src="{{asset('recursos/bower_components/datatables/media/js/jquery.dataTables.min.js')}}"></script>
+<script src="{{asset('recursos/bower_components/datatables-plugins/integration/bootstrap/3/dataTables.bootstrap.min.js')}}"></script>
+<script src="{{asset('recursos/js/script.js')}}"></script>
+    {% endblock %}

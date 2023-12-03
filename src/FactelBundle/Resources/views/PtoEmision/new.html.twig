@@ -1,0 +1,26 @@
+{% extends "FactelBundle::Layout.html.twig" %}
+{% block panel_title %}
+<i class="fa fa-bar-chart-o fa-fw"></i> Nuevo Punto Emisi&oacute;n
+<div class="pull-right">
+    <div class="btn-group">
+        <button class="btn btn-info btn-xs dropdown-toggle"
+                type="button" data-toggle="dropdown">
+            <i class="fa fa-list"></i>
+            Acciones <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu">
+            <li><a href="" onclick="document.getElementById('submit').click();return false;"><i class="fa fa-floppy-o"></i> Guardar</a></li>
+            <li><a href="{{ path('ptoemision') }}"><i class="fa fa-undo"></i> Cancelar</a></li>
+        </ul>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block content %}
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+    <button id="submit" class="hidden" type="submit">
+    </button>
+{{ form_end(form) }}
+{% endblock %}

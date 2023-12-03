@@ -1,0 +1,22 @@
+{% extends "FactelBundle::Layout.html.twig" %}
+{% block panel_title %}
+<i class="fa fa-bar-chart-o fa-fw"></i> Nuevo Emisor
+{% endblock %}
+{% block content %}
+
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+<div class="col-lg-offset-3 col-lg-6 botones">
+    <button class="btn btn-success" type="submit">
+        <i class="fa fa-save"></i>
+        Crear
+    </button>
+    <a href="{{ path('emisor') }}">
+        <button class="btn btn-warning" type="button">
+            <i class="fa fa-list"></i>
+            Cancelar
+        </button>
+    </a>
+{{ form_end(form) }}
+</div>
+{% endblock %}

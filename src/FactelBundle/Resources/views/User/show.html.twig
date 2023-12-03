@@ -1,0 +1,54 @@
+{% extends "FactelBundle::Layout.html.twig" %}
+{% block panel_title %}
+<i class="fa fa-bar-chart-o fa-fw"></i>{{entity.nombre}}
+<div class="pull-right">
+    <div class="btn-group">
+        <button class="btn btn-info btn-xs dropdown-toggle"
+                type="button" data-toggle="dropdown">
+            <i class="fa fa-list"></i>
+            Acciones <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu">
+            <li><a href="{{ path('usuario_new') }}"><i class="fa fa-plus-circle"></i> Nuevo</a></li>
+            <li><a href="{{ path('usuario_edit', { 'id': entity.id }) }}"><i class="fa fa-pencil-square-o"></i> Editar</a></li>
+            <li><a href="{{ path('usuario') }}"><i class="fa fa-undo"></i> Usuarios</a></li>
+            <li class="divider"></li>
+            <li><a class="accion" href="" data-toggle="modal" data-target="#confirm-delete" type="button" accion = "delete"><i class="glyphicon glyphicon-trash icon-white"></i> Eliminar</a></li>
+        </ul>
+    </div>
+
+</div>
+{% endblock %}
+{% block content %}
+<table class="table">
+    <tbody>
+        <tr>
+            <th>Estado</th>
+            <td>{%if entity.isActive %}<button disabled="disabled" class="btn btn-success link-boton">Activo</button>{%else%}<button disabled="disabled" class="btn btn-danger link-boton">Inactivo</button>{% endif%}</td>
+        </tr>
+        <tr>
+            <th>Username</th>
+            <td>{{ entity.username }}</td>
+        </tr>
+        <tr>
+            <th>Nombre</th>
+            <td>{{ entity.nombre }}</td>
+        </tr>
+        <tr>
+            <th>Apellidos</th>
+            <td>{{ entity.apellidos }}</td>
+        </tr>
+        <tr>
+            <th>Email</th>
+            <td>{{ entity.email }}</td>
+        </tr>
+        <tr>
+            <th>Copia Email Comprobante</th>
+            <td>{%if entity.copiarEmail %}<button disabled="disabled" class="btn btn-success link-boton">SI</button>{%else%}<button disabled="disabled" class="btn btn-danger link-boton">NO</button>{% endif%}</td>
+        </tr>
+    </tbody>
+</table>
+
+{{ form(delete_form) }}
+
+{% endblock %}

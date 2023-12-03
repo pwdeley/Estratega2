@@ -1,0 +1,89 @@
+{% extends "FactelBundle::Layout.html.twig" %}
+{% block panel_title %}
+    <i class="fa fa-bar-chart-o fa-fw"></i>{{entity.razonSocial}}
+    <div class="pull-right">
+        <div class="btn-group">
+            <button class="btn btn-info btn-xs dropdown-toggle"
+                    type="button" data-toggle="dropdown">
+                <i class="fa fa-list"></i>
+                Acciones <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                {% if is_granted('ROLE_ADMIN') %}
+                    <li><a href="{{ path('emisor_new') }}"><i class="fa fa-plus-circle"></i> Nuevo</a></li>
+                    {% endif %}
+                <li><a href="{{ path('emisor_edit', { 'id': entity.id }) }}"><i class="fa fa-pencil-square-o"></i> Editar</a></li>
+                    {% if is_granted('ROLE_ADMIN') %}
+                    <li><a href="{{ path('emisor') }}"><i class="fa fa-undo"></i> Emisores</a></li>
+                    <li class="divider"></li>
+                    <li><a class="accion" href="" data-toggle="modal" data-target="#confirm-delete" type="button" accion = "delete"><i class="glyphicon glyphicon-trash icon-white"></i> Eliminar</a></li>
+                    {% endif %}
+            </ul>
+        </div>
+
+    </div>
+{% endblock %}
+{% block content %}
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Estado</th>
+                <td>{%if entity.activo %}<button disabled="disabled" class="btn btn-success link-boton">Activo</button>{%else%}<button disabled="disabled" class="btn btn-danger link-boton">Inactivo</button>{% endif%}</td>
+            </tr>
+            <tr>
+                <th>Ruc</th>
+                <td>{{ entity.ruc }}</td>
+            </tr>
+            <tr>
+                <th>Raz&oacute;n Social</th>
+                <td>{{ entity.razonSocial }}</td>
+            </tr>
+            <tr>
+                <th>Nombre Comercial</th>
+                <td>{{ entity.nombreComercial }}</td>
+            </tr>
+            <tr>
+                <th>Direcci&oacute;n Matriz</th>
+                <td>{{ entity.direccionMatriz }}</td>
+            </tr>
+            <tr>
+                <th>Ambiente</th>
+                <td>{%if entity.ambiente == '1'%}Pruebas{% else %} Producci&oacute;n {% endif %}</td>
+            </tr>
+            <tr>
+                <th>Tipo de Emisi&oacute;n</th>
+                <td>{%if entity.tipoEmision == '1'%}Emisi&oacute;n Normal{% else %} Emisi&oacute;n por Indisponibilidad del Sistema {% endif %}</td>
+            </tr>
+            <tr>
+                <th>Contribuyente Especial</th>
+                <td>{{ entity.contribuyenteEspecial }}</td>
+            </tr>
+            <tr>
+                <th>Obligado Contabilidad</th>
+                <td>{{ entity.obligadoContabilidad }}</td>
+            </tr>
+            {%if entity.regimenRimpe %}
+                <tr>
+                    <th>R&eacute;gimen</th>
+                    <td>Contribuyente Negocio Popular - Régimen RIMPE</td>
+                </tr>
+            {% endif %}
+            {%if entity.regimenRimpe1 %}
+                <tr>
+                    <th>R&eacute;gimen</th>
+                    <td>Contribuyente Régimen RIMPE</td>
+                </tr>
+            {% endif %}
+            {%if entity.resolucionAgenteRetencion %}
+                <tr>
+                    <th>Resoluci&oacute;n Agente Retenci&oacute;n</th>
+                    <td>{{ entity.resolucionAgenteRetencion }}</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+    {% if is_granted('ROLE_ADMIN') %}
+        {{ form(delete_form) }}
+    {% endif %}
+
+{% endblock %}

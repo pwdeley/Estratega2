@@ -1,0 +1,612 @@
+{% extends "FactelBundle::Layout.html.twig" %}
+{% set secuencial = entity.secuencial %}
+{% block panel_title %}
+
+<i class="fa fa-bar-chart-o fa-fw"></i>Nota Cr&eacute;dito <strong>Nro: {{entity.establecimiento.codigo}}-{{entity.ptoEmision.codigo}}-{{secuencial}}</strong>
+<div class="pull-right">
+    <div class="btn-group">
+        <button class="btn btn-info btn-xs dropdown-toggle"
+                type="button" data-toggle="dropdown">
+            <i class="fa fa-list"></i>
+            Acciones <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu">
+            <li><a href="" onclick="document.getElementById('submit').click();
+                    return false;"><i class="fa fa-floppy-o"></i> Guardar</a></li>
+            <li><a href="{{ path('notacredito') }}"><i class="fa fa-undo"></i> Cancelar</a></li>
+        </ul>
+    </div>
+
+</div>
+{% endblock %}
+{% block content %}
+<div class="modal fade" id="search-client" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Seleccione el Cliente</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="dataTable_wrapper table-responsive">  
+                    <table class="table table-bordered table-hover " id="client-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%" >ID</th>
+                                <th style="width: 10%" >Tipo Identificacion</th>
+                                <th style="width: 30%" >Identificaci&oacute;n</th>
+                                <th>Raz&oacute;n Social</th>
+                                <th>Celular</th>
+                                <th>Email</th>
+                                <th>Direccion</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="search-product" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Seleccione un Producto</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="dataTable_wrapper table-responsive">  
+                    <table class="table table-bordered table-hover " id="product-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%" >ID</th>
+                                <th >C&oacute;digo Principal</th>
+                                <th >C&oacute;digo Auxiliar</th>
+                                <th>Descricci&oacute;n</th>
+                                <th>Precio Unitario</th>
+                                <th>IVA</th>
+                                <th>ICE</th>
+                                <th>IRBPNR</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<form method="POST" action="{{path('notacredito_create')}}" id="formNotaCredito">
+    <input type="text" id="idNotaCredito" value="{{entity.id}}" class="form-control hidden" name="idNotaCredito">
+    <div class="container-fluid factura">
+            {% for flashMessage in app.session.flashbag.get('notice') %}
+        <div class="col-sm-12 alert alert-danger alert-dismissable">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <h4><strong>Ha ocurrido un error al crear la NotaCredito!</strong></h4>
+            <p>{{ flashMessage }}</p>
+        </div>
+            {% endfor %}
+            {% if entity.mensajes | length >0  and entity.estado != "AUTORIZADO"%}
+        <div class="col-sm-12 alert alert-danger alert-dismissable">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <h5><strong>Errores ocurrido durante el proceso de envio al SRI!</strong></h5>
+                    {% for item in entity.mensajes %}
+            <p>{{item.mensaje}}</p>
+            <p>{{item.informacionAdicional}}</p>
+                    {% endfor %}
+        </div>
+            {% endif %}
+        <fieldset class="border col-sm-12">
+            <legend class="border">Emisor</legend>
+            <div class="control-group" id="emisor">
+                <div class="col-sm-12"><p class="text-center"><strong>Ruc:</strong> {{entity.emisor.ruc}}</p></div>
+                <div class="col-sm-12 col-md-6"><strong>Raz&oacute;n Social:</strong> {{entity.emisor.razonSocial}}</div>
+                <div class="col-sm-12 col-md-6"><strong>Nombre Comercial:</strong> {%if entity.establecimiento.nombreComercial%}{{entity.establecimiento.nombreComercial}}{%else%}{{entity.emisor.nombreComercial}}{%endif%}</div>
+                <div class="col-sm-12 col-md-6"><strong>Contribuyente Especial:</strong> {{entity.emisor.contribuyenteEspecial}}</div>
+                <div class="col-sm-12 col-md-6"><strong>Obligado Contabilidad:</strong> {{entity.emisor.obligadoContabilidad}}</div>
+                <div class="col-sm-12 col-md-6"><strong>Direcci&oacute;n Matriz:</strong> {{entity.emisor.direccionMatriz}}</div>
+                <div class="col-sm-12 col-md-6"><strong>Direcci&oacute;n Establecimiento:</strong> {{entity.establecimiento.direccion}}</div>
+            </div>
+        </fieldset>
+
+        <fieldset class="border  col-sm-12 ">
+            <legend class="border">Comprobante</legend>
+            <div class="control-group" id="comprobante">
+                <div class="col-sm-6 col-lg-3"><strong>Ambiente:</strong> {% if entity.emisor.ambiente == 1%} Pruebas {% else %} Producci&oacute;n {% endif %}</div>
+                <div class="col-lg-4"><strong>Tipo Emisi&oacute;n:</strong> {% if entity.emisor.tipoEmision == 1%} Emisi&oacute;n Normal {% else %} Emisi&oacute;n por Indisponibilidad del Sistema {% endif %}</div>
+                <div class="col-sm-12 col-lg-5"><strong>Fecha Emisi&oacute;n: *</strong> <input type="text" value="{{entity.fechaEmision |date('d/m/Y')}}" id="fecha" size="8" name="fechaEmision" required="required" onchange="CrearClaveAcceso()"/> </div>
+                <div class="col-sm-12"><p class="text-center"><strong>Clave Acceso</strong></p></div>
+                <div class="col-sm-12 claveAcceso"><p class="text-center" id="claveAcceso"></p></div>
+            </div>
+        </fieldset>
+        <fieldset class="border  col-sm-12 ">
+            <legend class="border">Comprobante Modificado</legend>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label">Tipo Documento: *</label>
+                    <select class="form-control"  name="tipoDocumento" required="required" value="{{entity.tipoDocMod}}">
+                        <option value="01">Factura</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="control-label">Fecha Emisi&oacute;n: *</label>
+                    <input type="text" id="fechaDocModificado" value="{{entity.fechaEmisionDocMod |date('d/m/Y')}}" class="form-control" size="8" name="fechaDocModificado" required="required" />
+                </div>
+                <div class="col-md-5">
+                    <label class="control-label">Nro Comprobante: *</label>
+                    <input type="text" id="numeroDocMod" value="{{entity.nroDocMod}}" class="form-control" name="numeroDocMod" required="required">
+                </div>
+
+                <div class="col-md-7">
+                    <label class="control-label">Motivo *</label>
+                    <input type="text" id="motivo" value="{{entity.motivo}}"  class="form-control" name="motivo" required="required" > 
+                </div>
+
+            </div>
+        </fieldset>
+            {% set datos = entity.emisor.ruc ~ ',' ~ entity.emisor.ambiente ~ ',' ~ entity.emisor.tipoEmision ~ ',' ~ entity.establecimiento.codigo~ ','~ entity.ptoEmision.codigo ~',' ~ secuencial ~',' ~ "04"%}
+        <input id="datos" type="hidden" value="{{datos}}" />
+        <input type="hidden" name="secuencial" value="{{secuencial}}" />
+        <fieldset class="border col-sm-12">
+
+            <legend class="border">Cliente</legend>
+
+            <div class="form-group">
+                <div class="checkbox col-sm-6 ">
+                    <label>
+                        <input type="checkbox" value=false id="nuevoCliente" name = "nuevoCliente" checked="0">
+                        <strong>Nuevo Cliente</strong>
+                    </label>
+                </div>
+
+                <div class="col-sm-6 text-right">
+                    <button class="btn btn-info link-boton accion" data-toggle="modal" data-target="#search-client" type="button">
+                        <i class="glyphicon glyphicon-search icon-white">Buscar</i>
+                    </button>
+
+                </div>
+                <input type="text" id="idCliente" value="{{entity.cliente.id}}" class="form-control hidden" name="idCliente">
+                <div class="col-md-5">
+                    <label class="control-label">Nombre</label>
+                    <input type="text" value="{{entity.cliente.nombre}}" id="nombre"  class="form-control" name="nombre" required="required">
+                </div>
+                <div class="col-md-3">
+                    <label class="control-label">Celular</label>
+                    <input type="text" value="{{entity.cliente.celular}}" id="celular" class="form-control" name="celular" >
+                </div>
+                <div class="col-md-4">
+                    <label class="control-label">Email </label>
+                    <input type="email" value="{{entity.cliente.correoElectronico}}" id="email" class="form-control" name="email" >
+                </div>
+                <div class="col-md-3">
+                    <label class="control-label">Tipo Identificaci&oacute;n *</label>
+                    <select class="form-control" id="tipoIdentificacion" name="tipoIdentificacion" required="required">
+                        <option value="04" {%if entity.cliente.tipoIdentificacion =="04"%} selected {%endif%}>RUC</option>
+                        <option value="05" {%if entity.cliente.tipoIdentificacion =="05"%} selected {%endif%}>CEDULA</option>
+                        <option value="06" {%if entity.cliente.tipoIdentificacion =="06"%} selected {%endif%}>PASAPORTE</option>
+                        <option value="07" {%if entity.cliente.tipoIdentificacion =="07"%} selected {%endif%}>CONSUMIDOR FINAL</option>
+                        <option value="08" {%if entity.cliente.tipoIdentificacion =="08"%} selected {%endif%}>EXTERIOR</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="control-label">Identificaci&oacute;n *</label>
+                    <input type="text" value="{{entity.cliente.identificacion}}" id="identificacion"  class="form-control" name="identificacion" required="required" > 
+                </div>
+                <div class="col-md-6">
+                    <label class="control-label">Direcci&oacute;n</label>
+                    <input type="text" value="{{entity.cliente.direccion}}" id="direccion" class="form-control" name="direccion" >
+                </div>
+            </div>
+        </fieldset>
+        <legend class="border">Productos</legend>
+        <div id="mensajeAdvertencia">
+
+        </div>
+        <div class="col-sm-12 text-right">
+
+            <button class="btn btn-info link-boton accion" data-toggle="modal" data-target="#search-product" type="button">
+                <i class="glyphicon glyphicon-search icon-white">Buscar</i>
+            </button>
+        </div>
+        <div class="dataTable_wrapper table-responsive col-lg-12">  
+            <table class="table table-striped table-bordered table-hover" id="productos">
+                <thead>
+                <thead>
+                    <tr>
+                        <th >Cantidad </th>
+                        <th>C&oacute;digo</th>
+                        <th>Descripci&oacute;n</th>
+                        <th>Precio</th>
+                        <th>Descuento</th>
+                        <th>Total</th>
+                        <th>ICE</th>
+                        <th>IRBPNR</th>
+                        <th>Accion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                        {% for item in entity.notaCreditoHasProducto %}
+                            {% set codIVA = 0 %}
+                            {% set tarifa = 0 %}
+                            {% set ICE = 0 %}
+                            {% set tieneICE = "false" %}
+                            {% set IRBPNR = 0 %}
+                            {% set tieneIRBPNR = "false" %}
+                            {% for impuesto in item.impuestos %}
+                                {% if impuesto.codigo == "2" %}
+                                    {% set codIVA = impuesto.codigoPorcentaje %}
+                                    {% set tarifa = impuesto.tarifa %}
+                                {% elseif impuesto.codigo == "3" %}
+                                    {% set tieneICE = "true" %}
+                                    {% set ICE = impuesto.valor %}
+                                {% elseif impuesto.codigo == "5" %}
+                                    {% set tieneIRBPNR = "true" %}
+                                    {% set IRBPNR = impuesto.valor %}
+                                {% endif %}
+                            {% endfor %}
+                    <tr class = "filaProducto">
+                        <td>
+                            <input type = "text" class= "hidden datos" value = "{{item.producto.id}},{{item.producto.codigoPrincipal}},{{item.producto.codigoAuxiliar}},{{item.producto.nombre}},{{item.precioUnitario}},{{codIVA}},{{tieneICE}},{{tieneIRBPNR}},{{tarifa}}">
+                            <input type = "text" value = "{{item.cantidad}}" size= "4" name = "cantidad[{{item.producto.id}}]" id="producto{{item.producto.id}}" onchange = "calcularaValorTotalXProducto({{item.producto.id}})">
+                        </td>
+                        <td> 
+                            <input type = "text" class= "hidden" value = "{{item.codigoProducto}}" id="codigoProducto{{item.producto.id}}" name = "codigoProducto[{{item.producto.id}}]">
+                          {{item.codigoProducto}} 
+                        </td>
+                        <td>
+                            <input type = "text" class= "hidden" value = "{{item.producto.id}}" id="idProducto{{item.producto.id}}" name = "idProducto[{{item.producto.id}}]"> 
+                            <input type = "text" value = "{{item.nombre}}" id="nombreProducto{{item.producto.id}}" name = "nombreProducto[{{item.producto.id}}]">
+                        </td>
+                        <td>
+                            <input type = "text" value = "{{item.precioUnitario}}" size= "4" name = "precio[{{item.producto.id}}]" id="precio{{item.producto.id}}" required onchange = "calcularaValorTotalXProducto({{item.producto.id}})">
+                        </td>
+                        <td>
+                            <input type = "text" value = "{{item.descuento}}" size= "4" name = "descuento[{{item.producto.id}}]" id="descuento{{item.producto.id}}" required onchange = "calcularaValorTotalXProducto({{item.producto.id}})">
+                        </td>
+                        <td id ="total{{item.producto.id}}">{{item.valorTotal}}</td>
+                        <td>
+                            <input type = "text" value = "{{ICE}}" size= "4" {%if tieneICE == "false" %}disabled="disabled"{% endif %} name = "ice[{{item.producto.id}}]" id="ice{{item.producto.id}}"   onchange = "calcularaValorTotalXProducto({{item.producto.id}})">
+                        </td>
+                        <td>
+                            <input type = "text" value = "{{IRBPNR}}" size= "4" {%if tieneIRBPNR == "false" %}disabled="disabled"{% endif %} name = "irbpnr[{{item.producto.id}}]" id="irbpnr{{item.producto.id}}"   onchange = "calcularaValorTotalXProducto({{item.producto.id}})">
+                        </td>
+                        <td> 
+                            <button class='btn btn-danger link-boton accion'  type='button' onclick = "eliminarFila(this)">
+                                <i class='glyphicon glyphicon-trash icon-white'></i>
+                            </button>
+                        </td>
+                    </tr>
+                        {% endfor %}
+                </tbody>
+            </table>
+        </div>  
+    </div>
+
+    <div class="col-xs-12 col-sm-12 col-md-4 col-md-offset-8">
+        <div class="col-xs-10 col-sm-8 text-right">SubTotal Sin Impuesto</div> 
+        <div class="col-xs-2 col-sm-4">
+            <p class="" id="subTotalSinImpuesto">{{entity.totalSinImpuestos}}</p>
+        </div>
+        <div class="col-xs-10 col-sm-8 text-right">Sub Total 12%</div>
+        <div class="col-xs-2 col-sm-4">
+            <p class="text-left" id="subTotal12">{{entity.subtotal12}}</p>
+        </div>
+        <div class="col-xs-10 col-sm-8 text-right">Sub Total 0%</div>
+        <div class="col-xs-2 col-sm-4">
+            <p class="text-left" id="subTotal0">{{entity.subtotal0}}</p>
+        </div>
+        <div class="col-xs-10 col-sm-8 text-right">Sub Total No Objeto IVA</div>
+        <div class="col-xs-2 col-sm-4">
+            <p class="text-left" id="subTotaNoObjeto">{{entity.subtotalNoIVA}}</p>
+        </div>
+        <div class="col-xs-10 col-sm-8 text-right">Sub Exento IVA</div>
+        <div class="col-xs-2 col-sm-4">
+            <p class="text-left" id="subTotaExento">{{entity.subtotalExentoIVA}}</p>
+        </div>
+        <div class="col-xs-10 col-sm-8 text-right">Descuento</div>
+        <div class="col-xs-2 col-sm-4">
+            <p class="text-left" id="descuento">{{entity.totalDescuento}}</p>
+        </div>
+        <div class="col-xs-10 col-sm-8 text-right">Valor ICE</div>
+        <div class="col-xs-2 col-sm-4">
+            <p class="text-left" id="ice">{{entity.valorICE}}</p>
+        </div>
+        <div class="col-xs-10 col-sm-8 text-right">Valor IRBPNR</div>
+        <div class="col-xs-2 col-sm-4">
+            <p class="text-left" id="irbpnr">{{entity.valorIRBPNR}}</p>
+        </div>
+        <div class="col-xs-10 col-sm-8 text-right">IVA 12%</div>
+        <div class="col-xs-2 col-sm-4">
+            <p class="text-left" id="iva12">{{entity.iva12}}</p>
+        </div>
+        <div class="col-xs-10 col-sm-8 text-right">VALOR TOTAL</div>
+        <div class="col-xs-2 col-sm-4">
+            <p class="text-left" id="valorTotal">{{entity.valorTotal}}</p>
+        </div>
+    </div>
+
+    <button class="hidden" id ="submit" type="submit"></button>
+</form>
+
+
+{% endblock %}
+
+{% block javascript %}
+<script src="{{asset('recursos/bower_components/datatables/media/js/jquery.dataTables.js')}}"></script>
+<script src="{{asset('recursos/bower_components/datatables-plugins/integration/bootstrap/3/dataTables.bootstrap.min.js')}}"></script>
+<script src="{{asset('recursos/js/script.js')}}"></script>
+
+<script>
+
+                                var oTable = $("#client-table").dataTable({
+                                    responsive: true,
+                                    bAutoWidth: false,
+                                    sAjaxSource: "{{ path('all_client')}}",
+                                    bProcessing: true,
+                                    bServerSide: true,
+                                    bSort: false,
+                                    asStripeClasses: [],
+                                    aLengthMenu: [[5, 10, 15], [5, 10, 15]],
+                                    aoColumns: [{"bVisible": false}, {"bVisible": false}, null, null, {"bVisible": false}, {"bVisible": false}, {"bVisible": false}],
+                                    language: {
+                                        sProcessing: "Procesando...",
+                                        sLengthMenu: "Mostrar _MENU_",
+                                        sZeroRecords: "No se encontraron resultados",
+                                        sEmptyTable: "Ningún dato disponible en esta tabla",
+                                        sInfo: "Mostrando del _START_ al _END_ de _TOTAL_ registros",
+                                        sInfoEmpty: "Mostrando del 0 al 0 de un total de 0 registros",
+                                        sInfoFiltered: "(filtrado de un total de _MAX_ registros)",
+                                        sInfoPostFix: "",
+                                        sSearch: "Buscar:",
+                                        sUrl: "",
+                                        sInfoThousands: ",",
+                                        sLoadingRecords: "Cargando...",
+                                        oPaginate: {
+                                            sFirst: "Primero",
+                                            sLast: "Último",
+                                            sNext: "Siguiente",
+                                            sPrevious: "Anterior"
+                                        },
+                                        oAria: {
+                                            sSortAscending: ": Activar para ordenar la columna de manera ascendente",
+                                            sSortDescending: ": Activar para ordenar la columna de manera descendente"
+                                        },
+                                    },
+                                });
+                                $('#client-table_filter input').unbind();
+                                $('#client-table_filter input').bind('keyup', function(e) {
+                                    if (e.keyCode == 13) {
+                                        oTable.fnFilter($(this).val());
+                                    }
+                                });
+                                $('#client-table tbody').on('click', 'tr', function() {
+                                    var aData = oTable.fnGetData(this); // get datarow
+                                    if (null != aData)  // null if we clicked on title row
+                                    {
+                                        $("#idCliente").val(aData[0]);
+                                        $("#tipoIdentificacion").val(aData[1]);
+                                        $("#identificacion").val(aData[2]);
+                                        $("#nombre").val(aData[3]);
+                                        $("#celular").val(aData[4]);
+                                        $("#email").val(aData[5]);
+                                        $("#direccion").val(aData[6]);
+                                        $('#search-client').modal('toggle');
+                                        $('#nuevoCliente').prop('checked', false);
+                                        $('#nuevoCliente').val(false);
+                                    }
+                                });
+                                $('#nuevoCliente').click(function() {
+                                    ;
+                                    $("#id").val("");
+                                    $("#tipoIdentificacion").val("");
+                                    $("#identificacion").val("");
+                                    $("#nombre").val("");
+                                    $("#celular").val("");
+                                    $("#email").val("");
+                                    $("#direccion").val("");
+                                    $('#nuevoCliente').prop('checked', true);
+                                    $('#nuevoCliente').val(true);
+                                });
+
+                                $('#nuevoCliente').prop('checked', false);
+                                var oTable2 = $("#product-table").dataTable({
+                                    responsive: true,
+                                    bAutoWidth: false,
+                                    sAjaxSource: "{{ path('all_product')}}",
+                                    bProcessing: true,
+                                    bServerSide: true,
+                                    bSort: false,
+                                    asStripeClasses: [],
+                                    aLengthMenu: [[5, 10, 15], [5, 10, 15]],
+                                    aoColumns: [{"bVisible": false}, null, null, null, null, {"bVisible": false}, {"bVisible": false}, {"bVisible": false}],
+                                    language: {
+                                        sProcessing: "Procesando...",
+                                        sLengthMenu: "Mostrar _MENU_",
+                                        sZeroRecords: "No se encontraron resultados",
+                                        sEmptyTable: "Ningún dato disponible en esta tabla",
+                                        sInfo: "Mostrando del _START_ al _END_ de _TOTAL_ registros",
+                                        sInfoEmpty: "Mostrando del 0 al 0 de un total de 0 registros",
+                                        sInfoFiltered: "(filtrado de un total de _MAX_ registros)",
+                                        sInfoPostFix: "",
+                                        sSearch: "Buscar:",
+                                        sUrl: "",
+                                        sInfoThousands: ",",
+                                        sLoadingRecords: "Cargando...",
+                                        oPaginate: {
+                                            sFirst: "Primero",
+                                            sLast: "Último",
+                                            sNext: "Siguiente",
+                                            sPrevious: "Anterior"
+                                        },
+                                        oAria: {
+                                            sSortAscending: ": Activar para ordenar la columna de manera ascendente",
+                                            sSortDescending: ": Activar para ordenar la columna de manera descendente"
+                                        },
+                                    },
+                                });
+                                $('#product-table_filter input').unbind();
+                                $('#product-table_filter input').bind('keyup', function(e) {
+                                    if (e.keyCode == 13) {
+                                        oTable2.fnFilter($(this).val());
+                                    }
+                                });
+                                $('#product-table tbody').on('click', 'tr', function(e) {
+                                    e.preventDefault();
+                                    var aData = oTable2.fnGetData(this); // get datarow
+
+                                    if (null !== aData && $("#idProducto" + aData[0]).val() != aData[0])  // null if we clicked on title row
+                                    {
+                                        var readOnlyICE = aData[6] ? "" : 'disabled="disabled"';
+                                        var readOnlyIRBPNR = aData[7] ? "" : 'disabled="disabled"';
+                                        $('#productos > tbody:last').append('<tr class = "filaProducto">'
+                                                + '<td><input type = "text" class= "hidden datos" value = "' + aData + '">' +
+                                                '<input type = "text" value = "1" size= "4" name = "cantidad[' + aData[0] + ']" id="producto' + aData[0] + '" onchange = "calcularaValorTotalXProducto(' + aData[0] + ')"></td>'
+                                                + '<td>' + aData[1] + '<input type = "text" class= "hidden" value = "' + aData[1] + '" id="codigoProducto' + aData[0] + '" name = "codigoProducto[' + aData[0] + ']"><input type = "text" class= "hidden" value = "' + aData[3] + '" id="nombreProducto' + aData[0] + '" name = "nombreProducto[' + aData[0] + ']"></td>'
+                                                + '<td><input type = "text" class= "hidden" value = "' + aData[0] + '" id="idProducto' + aData[0] + '" name = "idProducto[' + aData[0] + ']">' + aData[3] + '</td>'
+                                                + '<td><input type = "text" value = "' + aData[4] + '" size= "4" name = "precio[' + aData[0] + ']" id="precio' + aData[0] + '" required onchange = "calcularaValorTotalXProducto(' + aData[0] + ')"></td>'
+                                                + '<td><input type = "text" value = "0" size= "4" name = "descuento[' + aData[0] + ']" id="descuento' + aData[0] + '" required onchange = "calcularaValorTotalXProducto(' + aData[0] + ')"></td>'
+                                                + '<td id ="total' + aData[0] + '"></td>'
+                                                + '<td><input type = "text" value = "0" size= "4" name = "ice[' + aData[0] + ']" id="ice' + aData[0] + '" ' + readOnlyICE + ' onchange = "calcularaValorTotalXProducto(' + aData[0] + ')"></td>'
+                                                + '<td><input type = "text" value = "0" size= "4" name = "irbpnr[' + aData[0] + ']" id="irbpnr' + aData[0] + '" ' + readOnlyIRBPNR + ' onchange = "calcularaValorTotalXProducto(' + aData[0] + ')"></td>'
+                                                + "<td> <button class='btn btn-danger link-boton accion'  type='button' onclick = 'eliminarFila(this)'>"
+                                                + "<i class='glyphicon glyphicon-trash icon-white'></i></button></td></tr>"
+                                                + '</tr>');
+
+                                        $('#productos input').keypress(function(e) {
+                                            if (e.which == 13) {
+                                                $(this).blur();
+                                            }
+                                        });
+                                        calcularaValorTotalXProducto(aData[0]);
+
+                                        $('#search-product').modal('toggle');
+
+                                        var idProducto = aData[0];
+
+                                        $("#producto" + idProducto).rules("add", {
+                                            required: true,
+                                            number: true,
+                                        });
+                                        $("#precio" + aData[0]).rules("add", {
+                                            required: true,
+                                            number: true,
+                                        });
+                                        $("#descuento" + idProducto).rules("add", {
+                                            required: true,
+                                            number: true,
+                                        });
+                                        $("#ice" + idProducto).rules("add", {
+                                            required: true,
+                                            number: true,
+                                        });
+                                        $("#irbpnr" + idProducto).rules("add", {
+                                            required: true,
+                                            number: true,
+                                        });
+
+                                    } else if (null !== aData) {
+                                        $("#mensajeAdvertencia").children().first().remove();
+                                        var msg = "<div class='col-sm-12 alert alert-warning alert-dismissable' id='alert-warning'>" +
+                                                "<button type='button' class='close' data-dismiss='alert'>&times;</button>" +
+                                                "<p>El producto <strong>" + aData[3] + "</strong> ya se encuentra en la nota de credito. Aumente la cantidad si lo necesita.</p></div>";
+                                        $("#mensajeAdvertencia").append(msg);
+                                        $('#search-product').modal('toggle');
+                                        $("#alert-warning").fadeOut(6000);
+                                    }
+                                });
+                                $("form").keypress(function(e) {
+                                    if (e.which == 13) {
+                                        return false;
+                                    }
+                                });
+                                $("#formNotaCredito").validate({
+                                    errorClass: "my-error-class",
+                                    validClass: "my-valid-class",
+                                    rules: {
+                                        nombre: {
+                                            required: true,
+                                        },
+                                        email: {
+                                            email: true,
+                                        },
+                                        tipoIdentificacion: {
+                                            required: true,
+                                        },
+                                        identificacion: {
+                                            required: true,
+                                        },
+                                    }
+
+                                });
+
+                                function calcularaValorTotalXProducto(id) {
+                                    var cantidad = parseFloat($("#producto" + id).val());
+                                    var precioUnitario = parseFloat($("#precio" + id).val());
+                                    var descuento = parseFloat($("#descuento" + id).val());
+                                    var total = parseFloat(cantidad * precioUnitario - descuento);
+                                    $("#total" + id).text(total.toFixed(2));
+                                    calcularResumenValores();
+                                }
+                                function eliminarFila(e) {
+                                    $(e).parent().parent().remove();
+                                    calcularResumenValores();
+                                }
+                                function calcularResumenValores() {
+                                    var subTotalSinImpuesto = 0;
+                                    var subTotal12 = 0;
+                                    var subTotal0 = 0;
+                                    var subTotaNoObjeto = 0;
+                                    var subTotaExento = 0;
+                                    var descuento = 0;
+                                    var ice = 0;
+                                    var irbpnr = 0;
+                                    var iva12 = 0;
+
+                                    var valorTotal = 0;
+                                    $("tr.filaProducto").each(function(index, element) {
+                                        var datos = ($(element).find(".datos").val()).split(",");
+                                        var id = datos[0];
+                                        var codigoImpuesto = datos[5];
+                                        subTotalSinImpuesto += parseFloat($("#total" + id).text());
+                                        descuento += parseFloat($("#descuento" + id).val());
+                                        if (codigoImpuesto == '0') {
+                                            subTotal0 += parseFloat($("#total" + id).text());
+                                        } else if (codigoImpuesto == '6') {
+                                            subTotaNoObjeto += parseFloat($("#total" + id).text());
+                                        } else if (codigoImpuesto == '7') {
+                                            subTotaExento += parseFloat($("#total" + id).text());
+                                        } else {
+                                            subTotal12 += parseFloat($("#total" + id).text());
+                                            iva12 = subTotal12 * datos[8] / 100;
+                                        }
+
+                                        ice += parseFloat($("#ice" + id).val());
+                                        irbpnr += parseFloat($("#irbpnr" + id).val());
+
+
+
+
+
+                                    });
+                                    $("#subTotalSinImpuesto").text(subTotalSinImpuesto.toFixed(2));
+                                    $("#subTotal12").text(subTotal12.toFixed(2));
+                                    $("#subTotal0").text(subTotal0.toFixed(2));
+                                    $("#subTotaNoObjeto").text(subTotaNoObjeto.toFixed(2));
+                                    $("#subTotaExento").text(subTotaExento.toFixed(2));
+                                    $("#descuento").text(descuento.toFixed(2));
+                                    $("#ice").text(ice.toFixed(2));
+                                    $("#irbpnr").text(irbpnr.toFixed(2));
+                                    $("#iva12").text(iva12.toFixed(2));
+                                    valorTotal = subTotalSinImpuesto + iva12 + ice + irbpnr;
+                                    $("#valorTotal").text(valorTotal.toFixed(2));
+                                }
+</script>
+{% endblock %}
